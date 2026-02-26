@@ -57,7 +57,7 @@ void ADC1_Init()
 	 *Seting b000 = 1 converstion */
 
 	/* Setting Sequence length
-	 * We have only one channle. Seting b0000  for 1 */
+	 * We have only one channel. Seting b0000  for 1 */
 	ADC1->SQR1 &= ~ADC_SQR1_L_Msk;
 
 	/* CH6 is first channel in the Sequence */
@@ -97,7 +97,7 @@ void ADC1_Interrupt_Initialization()
 	/* Clear Pending Flag */
 	NVIC_ClearPendingIRQ(ADC_IRQn);
 
-	/* Setting EOC for each chanel */
+	/* Setting EOC for each channel */
 	ADC1->CR2 |= ADC_CR2_EOCS;
 
 	/* Disable Interrupt flag  */
