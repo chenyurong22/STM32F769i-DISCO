@@ -783,6 +783,7 @@ void BSP_LCD_SetYSize(uint32_t imageHeightPixels)
   * @param  FB_Address: Layer frame buffer
   * @retval None
   */
+
 void BSP_LCD_LayerDefaultInit(uint16_t LayerIndex, uint32_t FB_Address)
 {
     LCD_LayerCfgTypeDef  Layercfg;

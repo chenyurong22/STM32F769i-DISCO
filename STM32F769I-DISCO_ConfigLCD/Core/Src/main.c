@@ -164,33 +164,63 @@ int main(void)
 	BSP_LCD_Init(); /* ✅ Important */
 	MX_USART1_UART_Init();
 
+
 	/* USER CODE BEGIN 2 */
+	/* Testing UART log with assert_param() */
+	//assert_param(2>3);
+
+	uint8_t *pMsg = "Welcome to STM32F769i-DISCO \r\n";
+
+	uint8_t *pMsgOFF = "Display OFF. Turning ON in 5 sec .. \r\n";
+	uint8_t *pMsgON = "Display ON \r\n";
+
+	writetoSerial(&huart1, (char*)pMsg);
 
 	BSP_LCD_LayerDefaultInit(0, LCD_FRAME_BUFFER);
-	HAL_GPIO_WritePin(GPIOK, GPIO_PIN_3, GPIO_PIN_SET);
 
 	BSP_LCD_SelectLayer(0);
-	BSP_LCD_DisplayOn();
 	BSP_LCD_Clear(LCD_COLOR_DARKGREEN);
-
-	/* ✅ Enabling the backlight */
-	HAL_GPIO_WritePin(GPIOK, GPIO_PIN_3, GPIO_PIN_SET);
-
 	BSP_LCD_SetFont(&Font24);
 
 	BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
 	BSP_LCD_SetBackColor(LCD_COLOR_GREEN);
-	BSP_LCD_DisplayStringAtLine(10, (uint8_t*) " Good Morning STM32F769I-DISCO :)");
-	BSP_LCD_DisplayStringAtLine(12, (uint8_t*) " Have a NICE DAY ");
 
-	writetoSerial(&huart1, "Configuring LCD in STM32F769I-DISCO ! \r\n");
+	/* Display on */
+
+	uint32_t getCurtime = HAL_GetTick();
+
+	uint8_t nt35510_OFF[] = { 0x28, 0x00 };
+	uint8_t nt35510_ON[] = { 0x29, 0x00 };
+
+	writetoSerial(&huart1, (char*)pMsgOFF);
+
+	DSI_IO_WriteCmd(0, (uint8_t*) nt35510_OFF);
+
+#define TIMEOUT_MS 5000U
+
+	uint16_t delta = 0;
+	while ((delta = (HAL_GetTick() - getCurtime)) < TIMEOUT_MS)
+	{
+		/* Wait for timeout */
+		if (delta % 1000 == 0)
+			writeFormatData(&huart1, "Time (Sec): %ld \r\n", delta/1000);
+	}
+
+	DSI_IO_WriteCmd(0, (uint8_t*) nt35510_ON);
+	writetoSerial(&huart1, (char*)pMsgON);
+
+	/* Printing a single charater in LCD */
+	BSP_LCD_DisplayChar(50, 20, 'H');
+
+	BSP_LCD_DisplayStringAtLine(10,
+			(uint8_t*) " Good Morning STM32F769I-DISCO :)");
+	BSP_LCD_DisplayStringAtLine(12, (uint8_t*) " Have a NICE DAY ");
 
 	/* USER CODE END 2 */
 
 	/* USER CODE BEGIN LCD BOX */
 	LCDBox_t lcdBox;
-	setLCDBox(20, 40, 550, 100, LCD_COLOR_BLACK, LCD_COLOR_BLACK, LCD_COLOR_GREEN, &Font24, &lcdBox );
-
+	setLCDBox(20, 40, 550, 100, LCD_COLOR_BLACK, LCD_COLOR_BLACK, LCD_COLOR_WHITE, &Font24, &lcdBox );
 	drawLCDBox(&lcdBox, "STM32F769I-DISCOVERY Board LCD", 20);
 
 	HAL_Delay(250);
@@ -223,7 +253,7 @@ int main(void)
 		if (bCount == 255)
 			bCount = 0;
 
-		HAL_Delay(1000);
+		HAL_Delay(500);
 
 		/* USER CODE BEGIN 3 */
 	}
@@ -1254,11 +1284,21 @@ void Error_Handler(void)
   * @param  line: assert_param error line source number
   * @retval None
   */
+
 void assert_failed(uint8_t *file, uint32_t line)
 {
-  /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
+	/* USER CODE BEGIN 6 */
+	char aMsgBuff[80];
+	sprintf(aMsgBuff, "Invalid parameter: %s :%ld\r\n", file,
+			line);
+	writetoSerial(&huart1, aMsgBuff);
+	__disable_irq();
+
+	while(1)
+	{
+		/* Do nothing */
+	}
+
+	/* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

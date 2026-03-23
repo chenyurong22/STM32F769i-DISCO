@@ -110,6 +110,6 @@ uint32_t getColorRGB(uint8_t bColor)
 void drawCircleMultiColors(uint8_t bColor)
 {
 	BSP_LCD_SetTextColor(getColorRGB(bColor));
-	BSP_LCD_FillCircle(600, 300, 100);
+	BSP_LCD_FillCircle(400, 360, 50);
 }
 
