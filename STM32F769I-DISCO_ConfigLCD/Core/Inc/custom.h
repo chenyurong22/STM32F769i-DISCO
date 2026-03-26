@@ -98,4 +98,15 @@ typedef enum
 	HEX,
 } printformat_t;
 
+void GreenLED_init();
+void RedLED_init();
+
+void TurnGreenLED_ON();
+void TurnGreenLED_OFF();
+
+void ToggleGreenLED();
+void ToggleRedLED();
+
+
+
 #endif /* INC_CUSTOM_H_ */

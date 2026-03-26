@@ -162,3 +162,56 @@ void writeFormatData(UART_HandleTypeDef *huart, const char *format, ...)
 
 	HAL_UART_Transmit(huart, txBuffer, txBufferLen, HAL_MAX_DELAY);
 }
+
+void GreenLED_init()
+{
+	/* User LED is GPIOJ5 (LD2)*/
+
+	/* CLK for GPIOI */
+	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOJEN;
+
+	/* Set Mode as output mode */
+	GPIOJ->MODER &= ~(GPIO_MODER_MODER5);
+	GPIOJ->MODER |= GPIO_MODER_MODER5_0;
+}
+
+void RedLED_init()
+{
+	/* User LED is GPIOJ13 (LD1)*/
+
+	/* CLK for GPIOI */
+	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOIEN;
+
+	/* Set Mode as output mode */
+	GPIOJ->MODER &= ~(GPIO_MODER_MODER13);
+	GPIOJ->MODER |= GPIO_MODER_MODER13_0;
+}
+
+void TurnGreenLED_ON()
+{
+	GPIOJ->ODR |= (1U << 5);
+	//GPIOJ->BSRR = (1U << 5);
+}
+
+void ToggleGreenLED()
+{
+	GPIOJ->ODR = (1U << 5);
+	HAL_Delay(500);
+	GPIOJ->ODR &= ~(1U << 5);
+	//HAL_GPIO_TogglePin(GPIOJ, GPIO_PIN_5);
+
+}
+
+void ToggleRedLED()
+{
+	GPIOJ->ODR = (1U << 13);
+	HAL_Delay(250);
+	GPIOJ->ODR &= ~(1U << 13);
+	//HAL_GPIO_TogglePin(GPIOJ, GPIO_PIN_13);
+}
+
+void TurnGreenLED_OFF()
+{
+	GPIOJ->ODR &= ~(1U << 5);
+	//GPIOJ->BSRR = (1U << (5 + 16));
+}

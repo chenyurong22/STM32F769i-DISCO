@@ -6,6 +6,8 @@
  */
 
 #include "customLCD.h"
+#include "custom.h"
+#include "stm32f769i_discovery_ts.h"
 
 
 void setLCDBox(uint32_t XPos, uint32_t YPos, uint32_t XLength, uint32_t YHeight,
@@ -111,5 +113,24 @@ void drawCircleMultiColors(uint8_t bColor)
 {
 	BSP_LCD_SetTextColor(getColorRGB(bColor));
 	BSP_LCD_FillCircle(400, 360, 50);
+}
+
+void EXTI15_10_IRQHandler(void)
+{
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
+}
+extern volatile uint8_t TOUCH_ON;
+extern volatile uint16_t pixelXY[2];
+extern TS_StateTypeDef TS_State;
+extern uint8_t touchCount;
+
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if (GPIO_Pin == GPIO_PIN_13)
+	{
+		TOUCH_ON = 1;
+		touchCount++;
+	}
 }
 
