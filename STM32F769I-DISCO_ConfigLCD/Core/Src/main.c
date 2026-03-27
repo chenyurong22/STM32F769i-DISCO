@@ -291,7 +291,7 @@ int main(void)
 		if (bCount == 255)
 			bCount = 0;
 
-		HAL_Delay(250);
+		HAL_Delay(100);
 
 
 		if (TOUCH_ON)
@@ -307,7 +307,7 @@ int main(void)
 						pixelXY[0] = TS_State.touchX[0];
 						pixelXY[1] = TS_State.touchY[0];
 
-						sprintf((char*) aCordinate, "Touch Count: %d [%d:%d]",
+						sprintf((char*) aCordinate, "Touch Count: %d [%3d:%3d]",
 								touchCount, pixelXY[0], pixelXY[1]);
 
 						BSP_LCD_DisplayStringAtLine(5, (uint8_t*) aCordinate);
