@@ -83,7 +83,13 @@ UART_HandleTypeDef huart1;
 
 SDRAM_HandleTypeDef hsdram1;
 
-osThreadId defaultTaskHandle;
+/* Definitions for defaultTask */
+osThreadId_t defaultTaskHandle;
+const osThreadAttr_t defaultTask_attributes = {
+  .name = "defaultTask",
+  .stack_size = 4096 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -93,7 +99,7 @@ void SystemClock_Config(void);
 void PeriphCommonClock_Config(void);
 static void MPU_Config(void);
 static void MX_GPIO_Init(void);
-void StartDefaultTask(void const * argument);
+void StartDefaultTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -144,16 +150,15 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-
+  MX_ADC1_Init();
+  MX_CRC_Init();
   MX_DMA2D_Init();
   MX_DSIHOST_DSI_Init();
-
   MX_FMC_Init();
   BSP_SDRAM_Init();
 
   MX_LTDC_Init();
   BSP_LCD_Init();
-
 
   MX_QUADSPI_Init();
   MX_RTC_Init();
@@ -197,6 +202,9 @@ int main(void)
 
   /* USER CODE END 2 */
 
+  /* Init scheduler */
+  osKernelInitialize();
+
   /* USER CODE BEGIN RTOS_MUTEX */
 	/* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
@@ -216,13 +224,16 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  //osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 4096);
-  //defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+  /* creation of defaultTask */
+  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
 	/* add threads, ... */
   /* USER CODE END RTOS_THREADS */
+
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* add events, ... */
+  /* USER CODE END RTOS_EVENTS */
 
   /* Start scheduler */
   osKernelStart();
@@ -1122,7 +1133,7 @@ static void MX_GPIO_Init(void)
  * @retval None
  */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument)
+void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
 	/* Infinite loop */
@@ -1198,7 +1209,7 @@ void Error_Handler(void)
 	}
   /* USER CODE END Error_Handler_Debug */
 }
-#ifdef USE_FULL_ASSERT 1
+#ifdef USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.

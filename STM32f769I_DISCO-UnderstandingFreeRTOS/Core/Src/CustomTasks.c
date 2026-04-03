@@ -32,6 +32,7 @@ void TaskDebug1(void *pvArg)
 	{
 		writetoSerial(&huart1, "Running TaskDebug1() \r\n");
 		debugCnt1++;
+		//ITM_SendChar('1');
 		vTaskDelay(pdMS_TO_TICKS(250));
 	}
 }
