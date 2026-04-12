@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdarg.h>
 
 void _gettimeofday()
 {
@@ -132,4 +133,85 @@ void binaryToASCII(const uint8_t *pHex, uint16_t wHexLen, char *pAscii)
 			pAscii[count] = '.';
 	}
 	pAscii[count] = '\0';
+}
+
+#define SERIAL_TX_BUFF_SIZE 80U
+
+void writeFormatData(UART_HandleTypeDef *huart, const char *format, ...)
+{
+	char txBuffer[SERIAL_TX_BUFF_SIZE];
+	va_list args;
+	int txBufferLen = 0;
+
+	/* Initialize variable argument list */
+	va_start(args, format);
+
+	/* Format the string */
+	txBufferLen = vsnprintf(txBuffer, sizeof(txBuffer), format, args);
+
+	/*  End variale argument passing */
+	va_end(args);
+
+	if (txBufferLen < 0)
+	{
+		return;
+	}
+
+	if (txBufferLen >= SERIAL_TX_BUFF_SIZE)
+		txBufferLen = sizeof(txBuffer);
+
+	HAL_UART_Transmit(huart, txBuffer, txBufferLen, HAL_MAX_DELAY);
+}
+
+void GreenLED_init()
+{
+	/* User LED is GPIOJ5 (LD2)*/
+
+	/* CLK for GPIOI */
+	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOJEN;
+
+	/* Set Mode as output mode */
+	GPIOJ->MODER &= ~(GPIO_MODER_MODER5);
+	GPIOJ->MODER |= GPIO_MODER_MODER5_0;
+}
+
+void RedLED_init()
+{
+	/* User LED is GPIOJ13 (LD1)*/
+
+	/* CLK for GPIOI */
+	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOIEN;
+
+	/* Set Mode as output mode */
+	GPIOJ->MODER &= ~(GPIO_MODER_MODER13);
+	GPIOJ->MODER |= GPIO_MODER_MODER13_0;
+}
+
+void TurnGreenLED_ON()
+{
+	GPIOJ->ODR |= (1U << 5);
+	//GPIOJ->BSRR = (1U << 5);
+}
+
+void ToggleGreenLED()
+{
+	GPIOJ->ODR = (1U << 5);
+	HAL_Delay(500);
+	GPIOJ->ODR &= ~(1U << 5);
+	//HAL_GPIO_TogglePin(GPIOJ, GPIO_PIN_5);
+
+}
+
+void ToggleRedLED()
+{
+	GPIOJ->ODR = (1U << 13);
+	HAL_Delay(250);
+	GPIOJ->ODR &= ~(1U << 13);
+	//HAL_GPIO_TogglePin(GPIOJ, GPIO_PIN_13);
+}
+
+void TurnGreenLED_OFF()
+{
+	GPIOJ->ODR &= ~(1U << 5);
+	//GPIOJ->BSRR = (1U << (5 + 16));
 }
