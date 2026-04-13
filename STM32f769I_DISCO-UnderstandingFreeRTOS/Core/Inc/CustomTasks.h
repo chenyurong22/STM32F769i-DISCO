@@ -22,4 +22,11 @@ void TaskDebug2(void *pvArg);
 void TouchTask(void *pvArg);
 void PrintTask(void *pvArg);
 
+void SendtoSWV(char ch);
+void InitSWV();
+void EnableSWO();
+
+
+
+
 #endif /* INC_CUSTOMTASKS_H_ */

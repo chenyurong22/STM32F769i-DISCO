@@ -417,7 +417,6 @@ void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* hqspi)
   */
 void HAL_RTC_MspInit(RTC_HandleTypeDef* hrtc)
 {
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
   RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
   if(hrtc->Instance==RTC)
   {
@@ -436,17 +435,6 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef* hrtc)
 
     /* Peripheral clock enable */
     __HAL_RCC_RTC_ENABLE();
-
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-    /**RTC GPIO Configuration
-    PC13     ------> RTC_OUT
-    */
-    GPIO_InitStruct.Pin = GPIO_PIN_13;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
     /* USER CODE BEGIN RTC_MspInit 1 */
 
     /* USER CODE END RTC_MspInit 1 */
@@ -470,12 +458,6 @@ void HAL_RTC_MspDeInit(RTC_HandleTypeDef* hrtc)
     /* USER CODE END RTC_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_RTC_DISABLE();
-
-    /**RTC GPIO Configuration
-    PC13     ------> RTC_OUT
-    */
-    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_13);
-
     /* USER CODE BEGIN RTC_MspDeInit 1 */
 
     /* USER CODE END RTC_MspDeInit 1 */

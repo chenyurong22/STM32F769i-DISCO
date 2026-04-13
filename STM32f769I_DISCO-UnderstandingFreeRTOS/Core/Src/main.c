@@ -165,9 +165,16 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
+	/* Initialize Serial trace with ITM */
+	SWO_Pin_Init();
+	ITM_TPIU_Init();
+	ITM_SendChar('A');
+
 	/* Initializing Touch Sensor */
 	BSP_TS_Init(800, 480);
 	BSP_TS_INT_MspInit();
+
+	ITM_SendChar('B');
 
 	BSP_LCD_LayerDefaultInit(0, LCD_FRAME_BUFFER);
 
@@ -189,18 +196,22 @@ int main(void)
 	/* Initialize Queue */
 	touchQueue = xQueueCreate(10, sizeof(TouchData_t));
 
-
 	/* Creating tasks */
 	xTaskCreate(TouchTask, "TouchTask", 700, NULL, 7, NULL);
 	xTaskCreate(PrintTask, "PrintTask", 700, NULL, 6, NULL);
 	xTaskCreate(TaskDebug1, "TaskDebug1", 250, NULL, 4, NULL);
 	xTaskCreate(TaskDebug2, "TaskDebug2", 250, NULL, 3, NULL);
 
+	/* Configure SEGGER_SYSVIEW  */
+	 SEGGER_SYSVIEW_Conf();
+	 SEGGER_SYSVIEW_Start();
 
-    /* Start scheduler */
-    vTaskStartScheduler();
+	 /* Start scheduler */
+	vTaskStartScheduler();
 
-  /* USER CODE END 2 */
+
+
+	/* USER CODE END 2 */
 
   /* Init scheduler */
   osKernelInitialize();
@@ -220,7 +231,6 @@ int main(void)
   /* USER CODE BEGIN RTOS_QUEUES */
 	/* add queues, ... */
 
-
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -232,7 +242,7 @@ int main(void)
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
-  /* add events, ... */
+	/* add events, ... */
   /* USER CODE END RTOS_EVENTS */
 
   /* Start scheduler */
@@ -267,7 +277,6 @@ int main(void)
 //				HAL_Delay(5);
 //			}
 //		}
-
 	}
   /* USER CODE END 3 */
 }
@@ -345,8 +354,7 @@ void PeriphCommonClock_Config(void)
   /** Initializes the peripherals clock
   */
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_LTDC|RCC_PERIPHCLK_SAI1
-                              |RCC_PERIPHCLK_SAI2|RCC_PERIPHCLK_SDMMC2
-                              |RCC_PERIPHCLK_CLK48;
+                              |RCC_PERIPHCLK_SAI2;
   PeriphClkInitStruct.PLLSAI.PLLSAIN = 192;
   PeriphClkInitStruct.PLLSAI.PLLSAIR = 2;
   PeriphClkInitStruct.PLLSAI.PLLSAIQ = 3;
@@ -355,8 +363,6 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PLLSAIDivR = RCC_PLLSAIDIVR_2;
   PeriphClkInitStruct.Sai1ClockSelection = RCC_SAI1CLKSOURCE_PLLSAI;
   PeriphClkInitStruct.Sai2ClockSelection = RCC_SAI2CLKSOURCE_PLLSAI;
-  PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48SOURCE_PLLSAIP;
-  PeriphClkInitStruct.Sdmmc2ClockSelection = RCC_SDMMC2CLKSOURCE_CLK48;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -725,10 +731,6 @@ void MX_RTC_Init(void)
 
   /* USER CODE END RTC_Init 0 */
 
-  RTC_TimeTypeDef sTime = {0};
-  RTC_DateTypeDef sDate = {0};
-  RTC_AlarmTypeDef sAlarm = {0};
-
   /* USER CODE BEGIN RTC_Init 1 */
 
   /* USER CODE END RTC_Init 1 */
@@ -739,60 +741,10 @@ void MX_RTC_Init(void)
   hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
   hrtc.Init.AsynchPrediv = 127;
   hrtc.Init.SynchPrediv = 255;
-  hrtc.Init.OutPut = RTC_OUTPUT_ALARMA;
+  hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
   hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
   hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
   if (HAL_RTC_Init(&hrtc) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /* USER CODE BEGIN Check_RTC_BKUP */
-
-  /* USER CODE END Check_RTC_BKUP */
-
-  /** Initialize RTC and set the Time and Date
-  */
-  sTime.Hours = 0x0;
-  sTime.Minutes = 0x0;
-  sTime.Seconds = 0x0;
-  sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
-  sTime.StoreOperation = RTC_STOREOPERATION_RESET;
-  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sDate.WeekDay = RTC_WEEKDAY_MONDAY;
-  sDate.Month = RTC_MONTH_JANUARY;
-  sDate.Date = 0x1;
-  sDate.Year = 0x0;
-  if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BCD) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Enable the Alarm A
-  */
-  sAlarm.AlarmTime.Hours = 0x0;
-  sAlarm.AlarmTime.Minutes = 0x0;
-  sAlarm.AlarmTime.Seconds = 0x0;
-  sAlarm.AlarmTime.SubSeconds = 0x0;
-  sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
-  sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
-  sAlarm.AlarmMask = RTC_ALARMMASK_NONE;
-  sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
-  sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
-  sAlarm.AlarmDateWeekDay = 0x1;
-  sAlarm.Alarm = RTC_ALARM_A;
-  if (HAL_RTC_SetAlarm(&hrtc, &sAlarm, RTC_FORMAT_BCD) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Enable the Alarm B
-  */
-  sAlarm.Alarm = RTC_ALARM_B;
-  if (HAL_RTC_SetAlarm(&hrtc, &sAlarm, RTC_FORMAT_BCD) != HAL_OK)
   {
     Error_Handler();
   }
@@ -930,6 +882,22 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF10_OTG_HS;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : uSD_D3_Pin */
+  GPIO_InitStruct.Pin = uSD_D3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF10_SDMMC2;
+  HAL_GPIO_Init(uSD_D3_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : uSD_CMD_Pin uSD_CLK_Pin */
+  GPIO_InitStruct.Pin = uSD_CMD_Pin|uSD_CLK_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF11_SDMMC2;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
   /*Configure GPIO pin : WIFI_RX_Pin */
   GPIO_InitStruct.Pin = WIFI_RX_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -977,12 +945,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
   HAL_GPIO_Init(ARD_D13_SCK_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : NC4_Pin NC5_Pin uSD_Detect_Pin LCD_BL_CTRL_Pin */
-  GPIO_InitStruct.Pin = NC4_Pin|NC5_Pin|uSD_Detect_Pin|LCD_BL_CTRL_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
-
   /*Configure GPIO pins : NC3_Pin NC2_Pin NC1_Pin NC8_Pin
                            NC7_Pin */
   GPIO_InitStruct.Pin = NC3_Pin|NC2_Pin|NC1_Pin|NC8_Pin
@@ -990,6 +952,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOK, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : uSD_D1_Pin uSD_D0_Pin */
+  GPIO_InitStruct.Pin = uSD_D1_Pin|uSD_D0_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF11_SDMMC2;
+  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
   /*Configure GPIO pins : RMII_RXER_Pin OTG_FS_OverCurrent_Pin */
   GPIO_InitStruct.Pin = RMII_RXER_Pin|OTG_FS_OverCurrent_Pin;
@@ -1021,13 +991,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF8_UART5;
   HAL_GPIO_Init(WIFI_TX_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : ULPI_DIR_Pin */
-  GPIO_InitStruct.Pin = ULPI_DIR_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  /*Configure GPIO pins : NC5_Pin uSD_Detect_Pin LCD_BL_CTRL_Pin */
+  GPIO_InitStruct.Pin = NC5_Pin|uSD_Detect_Pin|LCD_BL_CTRL_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF10_OTG_HS;
-  HAL_GPIO_Init(ULPI_DIR_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
   /*Configure GPIO pin : CEC_CLK_Pin */
   GPIO_InitStruct.Pin = CEC_CLK_Pin;
@@ -1073,27 +1041,21 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF10_OTG_HS;
   HAL_GPIO_Init(ULPI_STP_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : RMII_MDC_Pin RMII_RXD0_Pin RMII_RXD1_Pin */
-  GPIO_InitStruct.Pin = RMII_MDC_Pin|RMII_RXD0_Pin|RMII_RXD1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : RMII_REF_CLK_Pin RMII_MDIO_Pin RMII_CRS_DV_Pin */
-  GPIO_InitStruct.Pin = RMII_REF_CLK_Pin|RMII_MDIO_Pin|RMII_CRS_DV_Pin;
+  /*Configure GPIO pins : RMII_REF_CLK_Pin RMII_CRS_DV_Pin */
+  GPIO_InitStruct.Pin = RMII_REF_CLK_Pin|RMII_CRS_DV_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : B_USER_Pin */
-  GPIO_InitStruct.Pin = B_USER_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  /*Configure GPIO pins : RMII_RXD0_Pin RMII_RXD1_Pin */
+  GPIO_InitStruct.Pin = RMII_RXD0_Pin|RMII_RXD1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(B_USER_GPIO_Port, &GPIO_InitStruct);
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PH7 */
   GPIO_InitStruct.Pin = GPIO_PIN_7;
