@@ -75,7 +75,8 @@ See BSP_SD_ErrorCallback() and BSP_SD_AbortCallback() below
  * Notice: This is applicable only for cortex M7 based platform.
  */
 /* USER CODE BEGIN enableSDDmaCacheMaintenance */
-/* #define ENABLE_SD_DMA_CACHE_MAINTENANCE  1 */
+/* DEBASISH*/
+#define ENABLE_SD_DMA_CACHE_MAINTENANCE 1
 /* USER CODE END enableSDDmaCacheMaintenance */
 
 /*
@@ -84,7 +85,9 @@ See BSP_SD_ErrorCallback() and BSP_SD_AbortCallback() below
 * transfer data
 */
 /* USER CODE BEGIN enableScratchBuffer */
-/* #define ENABLE_SCRATCH_BUFFER */
+/* DEBASISH: defined ENABLE_SCRATCH_BUFFER */
+
+#define ENABLE_SCRATCH_BUFFER
 /* USER CODE END enableScratchBuffer */
 
 /* Private variables ---------------------------------------------------------*/
@@ -666,14 +669,16 @@ void BSP_SD_ReadCpltCallback(void)
 
 /* USER CODE BEGIN ErrorAbortCallbacks */
 /*
+==============================================================================================
+  depending on the SD_HAL_Driver version, either the HAL_SD_ErrorCallback() or HAL_SD_AbortCallback()
+  or both could be defined, activate the callbacks below when suitable and needed
+==============================================================================================
 void BSP_SD_AbortCallback(void)
 {
-#if (osCMSIS < 0x20000U)
-   osMessagePut(SDQueueID, RW_ABORT_MSG, 0);
-#else
-   const uint16_t msg = RW_ABORT_MSG;
-   osMessageQueuePut(SDQueueID, (const void *)&msg, 0, 0);
-#endif
+}
+
+void BSP_SD_ErrorCallback(void)
+{
 }
 */
 /* USER CODE END ErrorAbortCallbacks */

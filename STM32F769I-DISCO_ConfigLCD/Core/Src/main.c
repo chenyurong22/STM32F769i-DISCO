@@ -282,7 +282,8 @@ int main(void)
 
 		drawCircleMultiColors(bCount % MAX_COLOR_COUNT);
 
-		snprintf(aCountMsg, sizeof(aCountMsg), "Color Code : %-3d", bCount % MAX_COLOR_COUNT);
+		snprintf(aCountMsg, sizeof(aCountMsg), "Color Code : %-3d",
+				bCount % MAX_COLOR_COUNT);
 
 		BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
 		BSP_LCD_DisplayStringAtLine(15, (uint8_t*) aCountMsg);
@@ -293,26 +294,22 @@ int main(void)
 
 		HAL_Delay(100);
 
-
 		if (TOUCH_ON)
 		{
 			TOUCH_ON = 0;
-
 			for (int i = 0; i < 80; i++)
 			{
-				if (BSP_TS_GetState(&TS_State) == TS_OK)
+				if (BSP_TS_GetState(&TS_State) == TS_OK
+						&& TS_State.touchDetected)
 				{
-					if (TS_State.touchDetected)
-					{
-						pixelXY[0] = TS_State.touchX[0];
-						pixelXY[1] = TS_State.touchY[0];
+					pixelXY[0] = TS_State.touchX[0];
+					pixelXY[1] = TS_State.touchY[0];
 
-						sprintf((char*) aCordinate, "Touch Count: %d [%3d:%3d]",
-								touchCount, pixelXY[0], pixelXY[1]);
+					sprintf((char*) aCordinate, "Touch Count: %d [%3d:%3d]",
+							touchCount, pixelXY[0], pixelXY[1]);
 
-						BSP_LCD_DisplayStringAtLine(5, (uint8_t*) aCordinate);
-						break;
-					}
+					BSP_LCD_DisplayStringAtLine(5, (uint8_t*) aCordinate);
+					break;
 				}
 				HAL_Delay(5);
 			}
