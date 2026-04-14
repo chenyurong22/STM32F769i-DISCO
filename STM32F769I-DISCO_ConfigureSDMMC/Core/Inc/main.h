@@ -71,6 +71,8 @@ void Error_Handler(void);
 #define FMC_NBL1_GPIO_Port GPIOE
 #define FMC_NBL0_Pin GPIO_PIN_0
 #define FMC_NBL0_GPIO_Port GPIOE
+#define ARDUINO_SCL_D15_Pin GPIO_PIN_8
+#define ARDUINO_SCL_D15_GPIO_Port GPIOB
 #define ULPI_D7_Pin GPIO_PIN_5
 #define ULPI_D7_GPIO_Port GPIOB
 #define uSD_D3_Pin GPIO_PIN_4
@@ -93,6 +95,8 @@ void Error_Handler(void);
 #define SAI1_SDA_GPIO_Port GPIOE
 #define RMII_TXD0_Pin GPIO_PIN_13
 #define RMII_TXD0_GPIO_Port GPIOG
+#define ARDUINO_SDA_D14_Pin GPIO_PIN_9
+#define ARDUINO_SDA_D14_GPIO_Port GPIOB
 #define AUDIO_SDA_Pin GPIO_PIN_7
 #define AUDIO_SDA_GPIO_Port GPIOB
 #define QSPI_NCS_Pin GPIO_PIN_6
@@ -201,8 +205,12 @@ void Error_Handler(void);
 #define FMC_A2_GPIO_Port GPIOF
 #define LCD_INT_Pin GPIO_PIN_13
 #define LCD_INT_GPIO_Port GPIOI
+#define uSD_Detect_Pin GPIO_PIN_15
+#define uSD_Detect_GPIO_Port GPIOI
 #define ARD_D5_PWM_Pin GPIO_PIN_8
 #define ARD_D5_PWM_GPIO_Port GPIOC
+#define ARD_D0_RX_Pin GPIO_PIN_7
+#define ARD_D0_RX_GPIO_Port GPIOC
 #define FMC_A3_Pin GPIO_PIN_3
 #define FMC_A3_GPIO_Port GPIOF
 #define LCD_BL_CTRL_Pin GPIO_PIN_14
@@ -211,6 +219,8 @@ void Error_Handler(void);
 #define ULPI_NXT_GPIO_Port GPIOH
 #define FMC_SDCLK_Pin GPIO_PIN_8
 #define FMC_SDCLK_GPIO_Port GPIOG
+#define ARDUINO_TX_D1_Pin GPIO_PIN_6
+#define ARDUINO_TX_D1_GPIO_Port GPIOC
 #define FMC_A4_Pin GPIO_PIN_4
 #define FMC_A4_GPIO_Port GPIOF
 #define FMC_SDNME_Pin GPIO_PIN_5

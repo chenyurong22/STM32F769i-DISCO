@@ -9,7 +9,6 @@
 #include "stm32f7xx_hal.h"
 #include "fatfs.h"
 #include "custom.h"
-#include <stdio.h>
 
 extern FATFS SDFatFS; /* Make it extern  */
 

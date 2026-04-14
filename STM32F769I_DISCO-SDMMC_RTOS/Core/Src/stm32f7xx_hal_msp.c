@@ -22,7 +22,9 @@
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
-extern DMA_HandleTypeDef hdma_sdmmc2;
+extern DMA_HandleTypeDef hdma_sdmmc2_tx;
+
+extern DMA_HandleTypeDef hdma_sdmmc2_rx;
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
@@ -316,72 +318,81 @@ void HAL_SD_MspInit(SD_HandleTypeDef* hsd)
     __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
     __HAL_RCC_GPIOG_CLK_ENABLE();
-    __HAL_RCC_GPIOC_CLK_ENABLE();
     /**SDMMC2 GPIO Configuration
-    PB8     ------> SDMMC2_D4
     PB4     ------> SDMMC2_D3
     PB3     ------> SDMMC2_D2
     PD7     ------> SDMMC2_CMD
-    PB9     ------> SDMMC2_D5
     PD6     ------> SDMMC2_CK
     PG10     ------> SDMMC2_D1
     PG9     ------> SDMMC2_D0
-    PC7     ------> SDMMC2_D7
-    PC6     ------> SDMMC2_D6
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_4|GPIO_PIN_3|GPIO_PIN_9;
+    GPIO_InitStruct.Pin = uSD_D3_Pin|uSD_D2_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF10_SDMMC2;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_6;
+    GPIO_InitStruct.Pin = uSD_CMD_Pin|uSD_CLK_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF11_SDMMC2;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_9;
+    GPIO_InitStruct.Pin = uSD_D1_Pin|uSD_D0_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF11_SDMMC2;
     HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_6;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF10_SDMMC2;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
     /* SDMMC2 DMA Init */
-    /* SDMMC2 Init */
-    hdma_sdmmc2.Instance = DMA2_Stream0;
-    hdma_sdmmc2.Init.Channel = DMA_CHANNEL_11;
-    hdma_sdmmc2.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    hdma_sdmmc2.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_sdmmc2.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_sdmmc2.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
-    hdma_sdmmc2.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-    hdma_sdmmc2.Init.Mode = DMA_PFCTRL;
-    hdma_sdmmc2.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_sdmmc2.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
-    hdma_sdmmc2.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
-    hdma_sdmmc2.Init.MemBurst = DMA_MBURST_INC4;
-    hdma_sdmmc2.Init.PeriphBurst = DMA_PBURST_INC4;
-    if (HAL_DMA_Init(&hdma_sdmmc2) != HAL_OK)
+    /* SDMMC2_TX Init */
+    hdma_sdmmc2_tx.Instance = DMA2_Stream0;
+    hdma_sdmmc2_tx.Init.Channel = DMA_CHANNEL_11;
+    hdma_sdmmc2_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_sdmmc2_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_sdmmc2_tx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_sdmmc2_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+    hdma_sdmmc2_tx.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+    hdma_sdmmc2_tx.Init.Mode = DMA_PFCTRL;
+    hdma_sdmmc2_tx.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_sdmmc2_tx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
+    hdma_sdmmc2_tx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
+    hdma_sdmmc2_tx.Init.MemBurst = DMA_MBURST_INC4;
+    hdma_sdmmc2_tx.Init.PeriphBurst = DMA_PBURST_INC4;
+    if (HAL_DMA_Init(&hdma_sdmmc2_tx) != HAL_OK)
     {
       Error_Handler();
     }
 
-    /* Several peripheral DMA handle pointers point to the same DMA handle.
-     Be aware that there is only one stream to perform all the requested DMAs. */
-    __HAL_LINKDMA(hsd,hdmarx,hdma_sdmmc2);
-    __HAL_LINKDMA(hsd,hdmatx,hdma_sdmmc2);
+    __HAL_LINKDMA(hsd,hdmatx,hdma_sdmmc2_tx);
 
+    /* SDMMC2_RX Init */
+    hdma_sdmmc2_rx.Instance = DMA2_Stream5;
+    hdma_sdmmc2_rx.Init.Channel = DMA_CHANNEL_11;
+    hdma_sdmmc2_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_sdmmc2_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_sdmmc2_rx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_sdmmc2_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+    hdma_sdmmc2_rx.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+    hdma_sdmmc2_rx.Init.Mode = DMA_PFCTRL;
+    hdma_sdmmc2_rx.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_sdmmc2_rx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
+    hdma_sdmmc2_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
+    hdma_sdmmc2_rx.Init.MemBurst = DMA_MBURST_INC4;
+    hdma_sdmmc2_rx.Init.PeriphBurst = DMA_PBURST_INC4;
+    if (HAL_DMA_Init(&hdma_sdmmc2_rx) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(hsd,hdmarx,hdma_sdmmc2_rx);
+
+    /* SDMMC2 interrupt Init */
+    HAL_NVIC_SetPriority(SDMMC2_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(SDMMC2_IRQn);
     /* USER CODE BEGIN SDMMC2_MspInit 1 */
 
     /* USER CODE END SDMMC2_MspInit 1 */
@@ -407,28 +418,25 @@ void HAL_SD_MspDeInit(SD_HandleTypeDef* hsd)
     __HAL_RCC_SDMMC2_CLK_DISABLE();
 
     /**SDMMC2 GPIO Configuration
-    PB8     ------> SDMMC2_D4
     PB4     ------> SDMMC2_D3
     PB3     ------> SDMMC2_D2
     PD7     ------> SDMMC2_CMD
-    PB9     ------> SDMMC2_D5
     PD6     ------> SDMMC2_CK
     PG10     ------> SDMMC2_D1
     PG9     ------> SDMMC2_D0
-    PC7     ------> SDMMC2_D7
-    PC6     ------> SDMMC2_D6
     */
-    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_8|GPIO_PIN_4|GPIO_PIN_3|GPIO_PIN_9);
+    HAL_GPIO_DeInit(GPIOB, uSD_D3_Pin|uSD_D2_Pin);
 
-    HAL_GPIO_DeInit(GPIOD, GPIO_PIN_7|GPIO_PIN_6);
+    HAL_GPIO_DeInit(GPIOD, uSD_CMD_Pin|uSD_CLK_Pin);
 
-    HAL_GPIO_DeInit(GPIOG, GPIO_PIN_10|GPIO_PIN_9);
-
-    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_7|GPIO_PIN_6);
+    HAL_GPIO_DeInit(GPIOG, uSD_D1_Pin|uSD_D0_Pin);
 
     /* SDMMC2 DMA DeInit */
-    HAL_DMA_DeInit(hsd->hdmarx);
     HAL_DMA_DeInit(hsd->hdmatx);
+    HAL_DMA_DeInit(hsd->hdmarx);
+
+    /* SDMMC2 interrupt DeInit */
+    HAL_NVIC_DisableIRQ(SDMMC2_IRQn);
     /* USER CODE BEGIN SDMMC2_MspDeInit 1 */
 
     /* USER CODE END SDMMC2_MspDeInit 1 */
