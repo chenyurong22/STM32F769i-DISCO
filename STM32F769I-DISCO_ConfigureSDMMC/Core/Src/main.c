@@ -2,7 +2,7 @@
 /**
  ******************************************************************************
  * @file           : main.c
- * @brief          : Main program body
+ * @brief          : Main program body (Interfaced with FreeRTOS)
  ******************************************************************************
  * @attention
  *
@@ -197,7 +197,7 @@ int main(void)
 	if (SDMMC2_mount() != FR_OK)
 	{
 		writetoSerial(&huart1, "SDMMC card mount failed \r\n");
-		return;
+		return FR_DISK_ERR;
 	}
 
 	/* File size to terminal */
@@ -210,7 +210,7 @@ int main(void)
 		if (SDMMCDelete(pOutFilename) != FR_OK)
 		{
 			writetoSerial(&huart1, "File delete failed \r\n");
-			return;
+			return FR_DISK_ERR;
 		}
 	}
 
