@@ -33,7 +33,7 @@ void showSDcardInfo(SD_HandleTypeDef *hsd)
 FIL file1;
 
 __attribute__((aligned(32)))
-         static uint8_t buffer[512];
+          static uint8_t buffer[512];
 
 void SD_Read_Test(void)
 {
@@ -85,17 +85,7 @@ void readSector0()
 FRESULT SDMMC2_mount(FIL pFile)
 {
 	FRESULT res;
-
 	res = f_mount(&SDFatFS, "0:", 1);
-
-	if (res != FR_OK)
-	{
-		writetoSerial(&huart1, "SD Card mounting failed \r\n");
-		return res;
-	}
-	else
-		writetoSerial(&huart1, "SD Card mounting succeed \r\n");
-
 	return res;
 }
 
@@ -175,8 +165,8 @@ FRESULT SDMMC2_WriteFile(const char *fname, entry_t *dataEntry,
 
 	/* Writing to File */
 
-	snprintf(writeBuffer, sizeof(writeBuffer), "[Index: %d] [%s] \r\n", f_size(&fp)/64,
-			dataEntry->data);
+	snprintf(writeBuffer, sizeof(writeBuffer), "[Index: %d] [%s] \r\n",
+			f_size(&fp) / 64, dataEntry->data);
 
 	status = f_write(&fp, writeBuffer, strlen(writeBuffer), &bytesWritten);
 

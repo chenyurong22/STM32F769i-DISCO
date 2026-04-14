@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "fatfs.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -63,6 +64,41 @@ TIM_HandleTypeDef htim3;
 
 UART_HandleTypeDef huart1;
 
+/* Definitions for DefaultTask */
+osThreadId_t DefaultTaskHandle;
+const osThreadAttr_t DefaultTask_attributes = {
+  .name = "DefaultTask",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityNormal1,
+};
+/* Definitions for mountSDMMCTask */
+osThreadId_t mountSDMMCTaskHandle;
+const osThreadAttr_t mountSDMMCTask_attributes = {
+  .name = "mountSDMMCTask",
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityNormal5,
+};
+/* Definitions for readSDCardTask */
+osThreadId_t readSDCardTaskHandle;
+const osThreadAttr_t readSDCardTask_attributes = {
+  .name = "readSDCardTask",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityNormal4,
+};
+/* Definitions for writeSDCardTask */
+osThreadId_t writeSDCardTaskHandle;
+const osThreadAttr_t writeSDCardTask_attributes = {
+  .name = "writeSDCardTask",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityNormal3,
+};
+/* Definitions for SDFileOperstion */
+osThreadId_t SDFileOperstionHandle;
+const osThreadAttr_t SDFileOperstion_attributes = {
+  .name = "SDFileOperstion",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityNormal6,
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -82,6 +118,12 @@ static void MX_TIM1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_RNG_Init(void);
+void StartDefaultTask(void *argument);
+void StartmountSDMMCTask(void *argument);
+void StartreadSDCardTask(void *argument);
+void StartwriteSDCardTask(void *argument);
+void StartSDFileOperstionTask(void *argument);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -141,14 +183,55 @@ int main(void)
 	writetoSerial(&huart1,
 			"Welocome to SDMMC utility on over RTOS on STM32F769I-DISCO! \r\n");
 
-	/* Mounting MicroSD card */
-	if (SDMMC2_mount() != FR_OK)
-	{
-		writetoSerial(&huart1, "SDMMC card mount failed \r\n");
-		return -1;
-	}
-
   /* USER CODE END 2 */
+
+  /* Init scheduler */
+  osKernelInitialize();
+
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* creation of DefaultTask */
+  DefaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &DefaultTask_attributes);
+
+  /* creation of mountSDMMCTask */
+  mountSDMMCTaskHandle = osThreadNew(StartmountSDMMCTask, NULL, &mountSDMMCTask_attributes);
+
+  /* creation of readSDCardTask */
+  readSDCardTaskHandle = osThreadNew(StartreadSDCardTask, NULL, &readSDCardTask_attributes);
+
+  /* creation of writeSDCardTask */
+  writeSDCardTaskHandle = osThreadNew(StartwriteSDCardTask, NULL, &writeSDCardTask_attributes);
+
+  /* creation of SDFileOperstion */
+  SDFileOperstionHandle = osThreadNew(StartSDFileOperstionTask, NULL, &SDFileOperstion_attributes);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* add events, ... */
+  /* USER CODE END RTOS_EVENTS */
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -639,10 +722,10 @@ static void MX_DMA_Init(void)
 
   /* DMA interrupt init */
   /* DMA2_Stream0_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
   /* DMA2_Stream5_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream5_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA2_Stream5_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream5_IRQn);
 
 }
@@ -1062,6 +1145,102 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/* USER CODE BEGIN Header_StartDefaultTask */
+/**
+  * @brief  Function implementing the DefaultTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void *argument)
+{
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_StartmountSDMMCTask */
+/**
+* @brief Function implementing the mountSDMMCTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartmountSDMMCTask */
+void StartmountSDMMCTask(void *argument)
+{
+  /* USER CODE BEGIN StartmountSDMMCTask */
+  /* Infinite loop */
+  for(;;)
+  {
+		if (SDMMC2_mount() == FR_OK)
+		{
+			writetoSerial(&huart1, "SDMMC card mount Succeed ! \r\n");
+			vTaskDelete(NULL);
+		}
+
+	  vTaskDelay(pdMS_TO_TICKS(250));
+  }
+  /* USER CODE END StartmountSDMMCTask */
+}
+
+/* USER CODE BEGIN Header_StartreadSDCardTask */
+/**
+* @brief Function implementing the readSDCardTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartreadSDCardTask */
+void StartreadSDCardTask(void *argument)
+{
+  /* USER CODE BEGIN StartreadSDCardTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartreadSDCardTask */
+}
+
+/* USER CODE BEGIN Header_StartwriteSDCardTask */
+/**
+* @brief Function implementing the writeSDCardTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartwriteSDCardTask */
+void StartwriteSDCardTask(void *argument)
+{
+  /* USER CODE BEGIN StartwriteSDCardTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartwriteSDCardTask */
+}
+
+/* USER CODE BEGIN Header_StartSDFileOperstionTask */
+/**
+* @brief Function implementing the SDFileOperstion thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartSDFileOperstionTask */
+void StartSDFileOperstionTask(void *argument)
+{
+  /* USER CODE BEGIN StartSDFileOperstionTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartSDFileOperstionTask */
+}
 
  /* MPU Configuration */
 
