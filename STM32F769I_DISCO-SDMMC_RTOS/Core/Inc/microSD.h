@@ -14,21 +14,26 @@
 #include "stm32f7xx_hal.h"
 #include "fatfs.h"
 
-
 typedef enum
 {
 	BINARY_FILE,
 	ASCII_FILE,
 	OTHER_FILE
-}FiletypeDef_t;
+} FiletypeDef_t;
+
+typedef enum
+{
+	READ_LOG,
+	WRITE_LOG,
+	NOP
+} DiskOperation_t;
 
 typedef struct entry
 {
-	char data[40];
+	char *data;
 	uint8_t index;
-}entry_t;
-
-
+	DiskOperation_t DiskOp;
+} entry_t;
 
 bool SD_IsDetected(void);
 void showSDcardInfo(SD_HandleTypeDef *hsd);
@@ -41,9 +46,9 @@ FRESULT SDMMC2_Unmount(FIL *pFIL);
 
 FRESULT SDMMC2_ReadFile(const char *fname, uint8_t bType, uint8_t *aBuffer,
 		size_t *wByeCount);
-FRESULT SDMMC2_WriteFile(const char *fname, entry_t *dataEntry, size_t *wByeCount);
+FRESULT SDMMC2_WriteFile(const char *fname, entry_t *dataEntry,
+		size_t *wByeCount);
 FSIZE_t fileSize(const char *pFileName);
 FRESULT SDMMCDelete(const char *pFilename);
-
 
 #endif /* INC_MICROSD_H_ */

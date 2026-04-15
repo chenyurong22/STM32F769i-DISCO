@@ -183,7 +183,10 @@ int main(void)
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
-	logDataQueue = xQueueCreate(20, sizeof(entry_t));
+
+#define QUEUE_SIZE 20U
+
+	logDataQueue = xQueueCreate(QUEUE_SIZE, sizeof(entry_t));
 	if(logDataQueue == NULL)
 	{
 		writetoSerial(&huart1, "Queue creation Failed! \r\n");

@@ -33,7 +33,7 @@ void showSDcardInfo(SD_HandleTypeDef *hsd)
 FIL file1;
 
 __attribute__((aligned(32)))
-          static uint8_t buffer[512];
+            static uint8_t buffer[512];
 
 void SD_Read_Test(void)
 {
@@ -145,8 +145,8 @@ FRESULT SDMMC2_WriteFile(const char *fname, entry_t *dataEntry,
 	FIL fp;
 	FRESULT status;
 	UINT bytesWritten = 0;
-	static uint8_t indx = 0;
-	char writeBuffer[80];
+	static uint16_t fileSize = 0;
+	char writeBuffer[100];
 
 	status = f_open(&fp, fname, FA_WRITE | FA_OPEN_ALWAYS);
 
@@ -159,14 +159,24 @@ FRESULT SDMMC2_WriteFile(const char *fname, entry_t *dataEntry,
 	/* Moving to the end of the file for append mode */
 	if (f_lseek(&fp, f_size(&fp)) != FR_OK)
 	{
-		writetoSerial(&huart1, "Error seekink file end! \r\n");
+		writetoSerial(&huart1, "Error seeking file end! \r\n");
 		return FR_INT_ERR;
 	}
 
-	/* Writing to File */
+	if (f_size(&fp) > 4000)
+	{
+		if (f_lseek(&fp, 0) == FR_OK)
+		{
+			writetoSerial(&huart1,
+					"[*** New Data at start position after truncate **]\r\n");
+			f_truncate(&fp);
+			f_sync(&fp);
+		}
+	}
 
-	snprintf(writeBuffer, sizeof(writeBuffer), "[Index: %d] [%s] \r\n",
-			f_size(&fp) / 64, dataEntry->data);
+	/* Writing to File */
+	snprintf(writeBuffer, sizeof(writeBuffer), "[Index: %d] [%s] \n",
+			dataEntry->index, dataEntry->data);
 
 	status = f_write(&fp, writeBuffer, strlen(writeBuffer), &bytesWritten);
 
@@ -177,12 +187,12 @@ FRESULT SDMMC2_WriteFile(const char *fname, entry_t *dataEntry,
 		return FR_DISK_ERR;
 	}
 
-	/* Ensure Data is flused into SDMMC */
+	/* Ensure Data is flushed into SDMMC */
 	f_sync(&fp);
 	f_close(&fp);
 
 	/* Returning number of byte written */
-	*wByeCount = bytesWritten;
+	*wByeCount = f_size(&fp);
 
 	return status;
 }
