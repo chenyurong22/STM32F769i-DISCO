@@ -145,14 +145,13 @@ FRESULT SDMMC2_WriteFile(const char *fname, entry_t *dataEntry,
 	FIL fp;
 	FRESULT status;
 	UINT bytesWritten = 0;
-	static uint16_t fileSize = 0;
 	char writeBuffer[100];
 
 	status = f_open(&fp, fname, FA_WRITE | FA_OPEN_ALWAYS);
 
 	if (status != FR_OK)
 	{
-		writetoSerial(&huart1, "Error reading READING/CREATING file !\r\n");
+		writetoSerial(&huart1, "Error READING/CREATING file !\r\n");
 		return FR_DISK_ERR;
 	}
 
@@ -168,13 +167,13 @@ FRESULT SDMMC2_WriteFile(const char *fname, entry_t *dataEntry,
 		if (f_lseek(&fp, 0) == FR_OK)
 		{
 			writetoSerial(&huart1,
-					"[*** New Data at start position after truncate **]\r\n");
+					"[** New Data at start position after truncate **]\r\n");
 			f_truncate(&fp);
 			f_sync(&fp);
 		}
 	}
 
-	/* Writing to File */
+	/* Formating the buffer for writing to the MicroSD card */
 	snprintf(writeBuffer, sizeof(writeBuffer), "[Index: %d] [%s] \n",
 			dataEntry->index, dataEntry->data);
 
@@ -191,7 +190,7 @@ FRESULT SDMMC2_WriteFile(const char *fname, entry_t *dataEntry,
 	f_sync(&fp);
 	f_close(&fp);
 
-	/* Returning number of byte written */
+	/* Return updated size */
 	*wByeCount = f_size(&fp);
 
 	return status;
@@ -209,8 +208,8 @@ FSIZE_t fileSize(const char *pFileName)
 	}
 
 	fileSize = f_size(&fp);
-
 	f_close(&fp);
+
 	return fileSize;
 }
 

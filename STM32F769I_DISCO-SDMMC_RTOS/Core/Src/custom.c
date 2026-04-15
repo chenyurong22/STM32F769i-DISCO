@@ -160,7 +160,7 @@ void writeFormatData(UART_HandleTypeDef *huart, const char *format, ...)
 	if (txBufferLen >= SERIAL_TX_BUFF_SIZE)
 		txBufferLen = sizeof(txBuffer);
 
-	HAL_UART_Transmit(huart, txBuffer, txBufferLen, HAL_MAX_DELAY);
+	HAL_UART_Transmit(huart, (uint8_t*)txBuffer, txBufferLen, HAL_MAX_DELAY);
 }
 
 void GreenLED_init()

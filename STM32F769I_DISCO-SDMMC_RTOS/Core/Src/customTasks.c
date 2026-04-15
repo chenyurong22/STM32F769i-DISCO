@@ -18,7 +18,6 @@ extern xQueueHandle logDataQueue;
 /* USER CODE BEGIN Header_StartmountSDMMCTask */
 void StartmountSDMMCTask(void *argument)
 {
-	/* USER CODE BEGIN StartmountSDMMCTask */
 
 	/* Infinite loop */
 	for (;;)
@@ -43,7 +42,6 @@ void StartreadSDCardTask(void *argument)
 	/* Infinite loop */
 	for (;;)
 	{
-		//writeFormatData(&huart1, "[%s] \r\n", pcTaskGetName(NULL));
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
 }
@@ -61,7 +59,6 @@ void StartwriteSDCardTask(void *argument)
 		logEntry.index = logCount;
 		logEntry.DiskOp = WRITE_LOG;
 
-		//writeFormatData(&huart1, "[%s] \r\n", pcTaskGetName(NULL));
 		if (xQueueSend(logDataQueue, &logEntry,200) != pdPASS)
 		{
 			writetoSerial(&huart1, "******** FULL **************** \r\n");
