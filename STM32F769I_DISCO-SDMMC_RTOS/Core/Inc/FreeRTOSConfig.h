@@ -31,6 +31,8 @@
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
+#include "customTrace.h"
+
 /*-----------------------------------------------------------
  * Application specific definitions.
  *
@@ -52,6 +54,9 @@
   #include <stdint.h>
   extern uint32_t SystemCoreClock;
 #endif
+
+
+
 #define configENABLE_FPU                         0
 #define configENABLE_MPU                         0
 
@@ -150,6 +155,7 @@ standard names. */
               to prevent overwriting SysTick_Handler defined within STM32Cube HAL */
 
 #define xPortSysTickHandler SysTick_Handler
+
 
 /* USER CODE BEGIN Defines */
 /* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */

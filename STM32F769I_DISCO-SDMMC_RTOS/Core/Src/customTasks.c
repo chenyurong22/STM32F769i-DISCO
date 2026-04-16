@@ -35,14 +35,34 @@ void StartmountSDMMCTask(void *argument)
 
 /* USER CODE BEGIN Header_StartreadSDCardTask */
 
+extern xQueueHandle logPspQueue;
 void StartreadSDCardTask(void *argument)
 {
-	/* USER CODE BEGIN StartreadSDCardTask */
+	traceLog_t readLog;
+	BaseType_t pxHigherPriorityTaskWoken;
 
-	/* Infinite loop */
+	char *name;
+
 	for (;;)
 	{
-		vTaskDelay(pdMS_TO_TICKS(500));
+		if (xQueueReceiveFromISR(logPspQueue, &readLog,
+				&pxHigherPriorityTaskWoken) == pdPASS)
+		{
+
+			name = pcTaskGetTaskName((TaskHandle_t) readLog.currTaskHandle);
+
+			writeFormatData(&huart1, "[%-15s] [R0:0x%lX] [R1:0x%lX] [R2:0x%lX]"
+					"[LR:0x%lX] [PC:0x%lX] [xPSR:0x%lX] \r\n",
+					name,
+					readLog.R0,
+					readLog.R1,
+					readLog.R2,
+					readLog.LR,
+					readLog.PC,
+					readLog.xPSR);
+
+			vTaskDelay(pdMS_TO_TICKS(500));
+		}
 	}
 }
 
@@ -84,9 +104,9 @@ void StartSDFileOperationTask(void *argument)
 		{
 			if (recvEntry.DiskOp == WRITE_LOG)
 			{
-				SDMMC2_WriteFile("Output.txt", &recvEntry, &byteCount);
-				writeFormatData(&huart1, "FileS size: %d bytes\r\n", byteCount);
-				indx++;
+//				SDMMC2_WriteFile("Output.txt", &recvEntry, &byteCount);
+//				writeFormatData(&huart1, "FileS size: %d bytes\r\n", byteCount);
+//				indx++;
 			}
 		}
 		else
@@ -97,3 +117,4 @@ void StartSDFileOperationTask(void *argument)
 		vTaskDelay(pdMS_TO_TICKS(100));
 	}
 }
+

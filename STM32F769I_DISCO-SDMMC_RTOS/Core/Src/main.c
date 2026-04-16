@@ -30,6 +30,7 @@
 #include "custom.h"
 #include "microSD.h"
 #include "customTasks.h"
+#include "customTrace.h"
 
 /* USER CODE END Includes */
 
@@ -86,6 +87,7 @@ TaskHandle_t SDFileOperationHandle;
 
 /* Custom message Queue */
 xQueueHandle logDataQueue;
+xQueueHandle logPspQueue;
 
 /* USER CODE END PV */
 
@@ -185,6 +187,7 @@ int main(void)
   /* USER CODE BEGIN RTOS_QUEUES */
 
 #define QUEUE_SIZE 20U
+#define QUEUE_SIZE_PSP 64U
 
 	logDataQueue = xQueueCreate(QUEUE_SIZE, sizeof(entry_t));
 	if(logDataQueue == NULL)
@@ -192,6 +195,14 @@ int main(void)
 		writetoSerial(&huart1, "Queue creation Failed! \r\n");
 		return ERROR;
 	}
+
+	logPspQueue = xQueueCreate(QUEUE_SIZE_PSP, sizeof(traceLog_t));
+	if(logPspQueue == NULL)
+	{
+		writetoSerial(&huart1, "PSP Queue creation Failed! \r\n");
+		return ERROR;
+	}
+
 
   /* USER CODE END RTOS_QUEUES */
 

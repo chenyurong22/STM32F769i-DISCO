@@ -55,6 +55,8 @@ extern "C" {
 /* Application specific configuration options. */
 #include "FreeRTOSConfig.h"
 
+
+
 /* Basic FreeRTOS definitions. */
 #include "projdefs.h"
 
@@ -331,10 +333,14 @@ extern "C" {
 	#define traceLOW_POWER_IDLE_END()
 #endif
 
+
+
 #ifndef traceTASK_SWITCHED_OUT
 	/* Called before a task has been selected to run.  pxCurrentTCB holds a pointer
 	to the task control block of the task being switched out. */
-	#define traceTASK_SWITCHED_OUT()
+	#define traceTASK_SWITCHED_OUT() \
+	do {  someFun(pxCurrentTCB); } while(0)
+
 #endif
 
 #ifndef traceTASK_PRIORITY_INHERIT

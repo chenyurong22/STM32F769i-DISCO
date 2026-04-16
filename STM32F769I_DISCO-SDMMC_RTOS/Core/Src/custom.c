@@ -135,7 +135,7 @@ void binaryToASCII(const uint8_t *pHex, uint16_t wHexLen, char *pAscii)
 	pAscii[count] = '\0';
 }
 
-#define SERIAL_TX_BUFF_SIZE 80U
+#define SERIAL_TX_BUFF_SIZE 120U
 
 void writeFormatData(UART_HandleTypeDef *huart, const char *format, ...)
 {
