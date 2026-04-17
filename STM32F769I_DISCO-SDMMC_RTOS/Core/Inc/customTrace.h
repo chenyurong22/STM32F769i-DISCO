@@ -31,7 +31,7 @@ typedef struct traceLog
 
 
 /* Private function prototypes starts */
-void someFun(void *pxCurrentTCB);
+void logTaskPSPMicroSD(void *pxCurrentTCB);
 void sendPspLogfromISR(traceLog_t *log);
 
 

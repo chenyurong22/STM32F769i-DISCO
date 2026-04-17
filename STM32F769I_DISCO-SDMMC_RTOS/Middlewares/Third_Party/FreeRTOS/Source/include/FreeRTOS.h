@@ -339,7 +339,7 @@ extern "C" {
 	/* Called before a task has been selected to run.  pxCurrentTCB holds a pointer
 	to the task control block of the task being switched out. */
 	#define traceTASK_SWITCHED_OUT() \
-	do {  someFun(pxCurrentTCB); } while(0)
+	do { logTaskPSPMicroSD(pxCurrentTCB);} while(0)
 
 #endif
 

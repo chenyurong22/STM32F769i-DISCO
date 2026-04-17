@@ -2955,7 +2955,7 @@ void vTaskSwitchContext( void )
 	else
 	{
 		xYieldPending = pdFALSE;
-		traceTASK_SWITCHED_OUT();
+		traceTASK_SWITCHED_OUT(); /* This is where someFunc() will be called */
 
 		#if ( configGENERATE_RUN_TIME_STATS == 1 )
 		{

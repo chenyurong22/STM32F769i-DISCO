@@ -15,7 +15,7 @@
 
 extern xQueueHandle logPspQueue;
 
-void someFun(void *pxCurrentTCB)
+void logTaskPSPMicroSD(void *pxCurrentTCB)
 {
 	traceLog_t pspLog;
 	uint32_t *psp = *(uint32_t**) pxCurrentTCB;
