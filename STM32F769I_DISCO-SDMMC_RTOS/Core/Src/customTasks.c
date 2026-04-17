@@ -28,8 +28,6 @@ void StartmountSDMMCTask(void *argument)
 			vTaskSuspend(NULL);
 		}
 
-		taskYIELD();
-
 		vTaskDelay(pdMS_TO_TICKS(250));
 	}
 	/* USER CODE END StartmountSDMMCTask */
