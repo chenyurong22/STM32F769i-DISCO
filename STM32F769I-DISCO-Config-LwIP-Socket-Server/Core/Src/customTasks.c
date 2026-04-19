@@ -9,6 +9,7 @@
 #include "stdint.h"
 #include "custom.h"
 #include "customTrace.h"
+#include "lwip.h"
 
 entry_t logEntry;
 entry_t readEntry;
@@ -29,7 +30,7 @@ void StartmountSDMMCTask(void *argument)
 			writetoSerial(&huart1, "SDMMC card mount Succeed ! \r\n");
 			loopCount++;
 
-			if (loopCount > 20)
+			if (loopCount > 10)
 			{
 				writeFormatData(&huart1, "Deleting [%s] task ... \r\n",
 						__func__);
@@ -40,13 +41,56 @@ void StartmountSDMMCTask(void *argument)
 	}
 }
 
+extern struct netif gnetif;
+
+/* USER CODE BEGIN StartLwIPInitHandle */
+void StartLwIPInitHandle(void *argument)
+{
+	uint16_t loopCount = 0;
+	for (;;)
+	{
+		if (netif_is_link_up(&gnetif))
+		{
+			if (netif_is_up(&gnetif))
+			{
+				if (!ip4_addr_isany_val(*netif_ip4_addr(&gnetif)))
+				{
+					writeFormatData(&huart1, "IP address: %s\r\n",
+							ip4addr_ntoa(netif_ip4_addr(&gnetif)));
+
+					loopCount++;
+					if (loopCount > 10)
+					{
+						writetoSerial(&huart1, "Deleting the task ... \r\n");
+						vTaskDelete(NULL);
+						vTaskDelay(pdMS_TO_TICKS(100));
+					}
+				}
+				else
+				{
+					writetoSerial(&huart1, "Waiting for IP...\r\n");
+				}
+			}
+			else
+			{
+				writetoSerial(&huart1, "Interface not up yet\r\n");
+			}
+		}
+		else
+		{
+			writetoSerial(&huart1, "Cable disconnected\r\n");
+		}
+		vTaskDelay(pdMS_TO_TICKS(250));
+	}
+}
+
 /* USER CODE BEGIN Header_StartreadSDCardTask */
 void StartreadSDCardTask(void *argument)
 {
 
 	for (;;)
 	{
-		vTaskDelay(pdMS_TO_TICKS(250));
+		vTaskDelay(pdMS_TO_TICKS(500));
 	}
 }
 

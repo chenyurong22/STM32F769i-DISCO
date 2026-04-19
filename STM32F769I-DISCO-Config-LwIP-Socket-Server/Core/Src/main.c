@@ -50,6 +50,7 @@ TaskHandle_t readSDCardTaskHandle;
 TaskHandle_t writeSDCardTaskHandle;
 TaskHandle_t showSDCardTaskHandle;
 TaskHandle_t SDFileOperationHandle;
+TaskHandle_t LwIPInitHandle;
 
 /* USER CODE END PD */
 
@@ -73,13 +74,6 @@ UART_HandleTypeDef huart1;
 osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
 
-#if 0
-TaskHandle_t mountSDMMCTaskHandle;
-TaskHandle_t readSDCardTaskHandle;
-TaskHandle_t writeSDCardTaskHandle;
-TaskHandle_t showSDCardTaskHandle;
-TaskHandle_t SDFileOperationHandle;
-#endif
 
 /* USER CODE END PV */
 
@@ -173,13 +167,17 @@ int main(void)
 
 	/* Create the thread(s) */
 	/* definition and creation of defaultTask */
-	osThreadDef(defaultTask, StartDefaultTask, osPriorityLow, 0, 4096);
+	osThreadDef(defaultTask, StartDefaultTask, osPriorityRealtime, 0, 2048);
 	defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
 	/* USER CODE BEGIN RTOS_THREADS */
 	/* creation of mountSDMMCTask */
-	xTaskCreate(StartmountSDMMCTask, "mountSDMMCTask", 1000, NULL, 8,
+	xTaskCreate(StartmountSDMMCTask, "mountSDMMCTask", 1000, NULL, 1,
 			&mountSDMMCTaskHandle);
+
+	/* creation of LwIPInitHandle task */
+	xTaskCreate(StartLwIPInitHandle, "LwIPInitHandle", 1000, NULL, 2,
+			&LwIPInitHandle);
 
 	/* USER CODE END RTOS_THREADS */
 
@@ -769,44 +767,10 @@ void StartDefaultTask(void const *argument)
 	/* init code for LWIP */
 	MX_LWIP_Init();
 	/* USER CODE BEGIN 5 */
-	uint16_t loopCount = 0;
 
 	for (;;)
 	{
-		if (netif_is_link_up(&gnetif))
-		{
-			writetoSerial(&huart1, "Link UP\r\n");
-
-			if (netif_is_up(&gnetif))
-			{
-				if (!ip4_addr_isany_val(*netif_ip4_addr(&gnetif)))
-				{
-					writeFormatData(&huart1, "IP address: %s\r\n",
-							ip4addr_ntoa(netif_ip4_addr(&gnetif)));
-
-					loopCount++;
-					if (loopCount > 10)
-					{
-						writetoSerial(&huart1, "Deleting the task ... \r\n");
-						vTaskDelete(NULL);
-						vTaskDelay(pdMS_TO_TICKS(100));
-					}
-				}
-				else
-				{
-					writetoSerial(&huart1, "Waiting for IP...\r\n");
-				}
-			}
-			else
-			{
-				writetoSerial(&huart1, "Interface not up yet\r\n");
-			}
-		}
-		else
-		{
-			writetoSerial(&huart1, "Cable disconnected\r\n");
-		}
-		vTaskDelay(pdMS_TO_TICKS(500));
+		vTaskDelay(pdMS_TO_TICKS(250));
 	}
 	/* USER CODE END 5 */
 }
