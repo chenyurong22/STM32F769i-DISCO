@@ -22,7 +22,9 @@ void StartreadSDCardTask(void *argument);
 void StartwriteSDCardTask(void *argument);
 void StartshowSDCardTask(void *argument);
 void StartSDFileOperationTask(void *argument);
-void StartLwIPInitHandle(void *argument);
+void StartLwIPLinkHandle(void *argument);
+void StartLwIPClientHandle(void *argument);
+
 
 
 #endif /* INC_CUSTOMTASKS_H_ */

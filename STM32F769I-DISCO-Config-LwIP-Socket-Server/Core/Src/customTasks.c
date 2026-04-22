@@ -11,6 +11,8 @@
 #include "customTrace.h"
 #include "lwip.h"
 
+#include "lwip/sockets.h"
+
 entry_t logEntry;
 entry_t readEntry;
 entry_t writeEntry;
@@ -44,7 +46,7 @@ void StartmountSDMMCTask(void *argument)
 extern struct netif gnetif;
 
 /* USER CODE BEGIN StartLwIPInitHandle */
-void StartLwIPInitHandle(void *argument)
+void StartLwIPLinkHandle(void *argument)
 {
 	uint16_t loopCount = 0;
 	for (;;)
@@ -59,7 +61,7 @@ void StartLwIPInitHandle(void *argument)
 							ip4addr_ntoa(netif_ip4_addr(&gnetif)));
 
 					loopCount++;
-					if (loopCount > 10)
+					if (loopCount > 20)
 					{
 						writetoSerial(&huart1, "Deleting the task ... \r\n");
 						vTaskDelete(NULL);
@@ -81,6 +83,68 @@ void StartLwIPInitHandle(void *argument)
 			writetoSerial(&huart1, "Cable disconnected\r\n");
 		}
 		vTaskDelay(pdMS_TO_TICKS(250));
+	}
+}
+
+/* USER CODE BEGIN StartLwIPClientHandle */
+void StartLwIPClientHandle(void *argument)
+{
+	int sockID;
+	struct sockaddr_in serverAddr;
+	int connetStatus = 0;
+	uint16_t servPort = 5000;
+
+	writetoSerial(&huart1, "Waiting for network becme high.. \r\n");
+
+	/* Wait for network to become UP */
+	while (!netif_is_up(&gnetif))
+	{
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}
+	writetoSerial(&huart1, "Network is Up \r\n");
+
+	for (;;)
+	{
+		/* Creating TCP_IP socket in */
+		sockID = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+		if (sockID < 0)
+		{
+			writetoSerial(&huart1, "Socket creation failed \r\n");
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            continue;
+		}
+
+		/* Configuring server address */
+		/* Clearing the socket address field */
+		memset((struct sockaddr_in*) &serverAddr, 0,
+				sizeof(struct sockaddr_in));
+
+		serverAddr.sin_family = AF_INET;
+		serverAddr.sin_port = htons(servPort);
+		serverAddr.sin_addr.s_addr = inet_addr("192.168.0.8");
+
+		/* Connecting to the server */
+		connetStatus = connect(sockID, (struct sockaddr* )&serverAddr,
+				sizeof(serverAddr));
+
+		if (connetStatus < 0)
+		{
+			writetoSerial(&huart1, "Connection to the server Failed! \r\n");
+			close(sockID);
+			vTaskDelay(pdMS_TO_TICKS(3000));
+			continue;
+		}
+
+		writetoSerial(&huart1, "Connection to the server succeed :) \r\n");
+		vTaskDelay(pdMS_TO_TICKS(500));
+
+		/* Close the socket descriptor for next connect */
+		shutdown(sockID, SHUT_RDWR);
+		close(sockID);
+
+		/* Wait before reconnect */
+		vTaskDelay(pdMS_TO_TICKS(2000));
 	}
 }
 
@@ -116,15 +180,9 @@ void StartshowSDCardTask(void *argument)
 
 			writeFormatData(&huart1,
 					"[%-15s:%2d] [R0:0x%lX] [R1:0x%lX] [R2:0x%lX]"
-							"[LR:0x%lX] [PC:0x%lX] [xPSR:0x%lX] \r\n",
-							name,
-							taskPriority,
-							readLog.R0,
-							readLog.R1,
-							readLog.R2,
-							readLog.LR,
-							readLog.PC,
-							readLog.xPSR);
+							"[LR:0x%lX] [PC:0x%lX] [xPSR:0x%lX] \r\n", name,
+					taskPriority, readLog.R0, readLog.R1, readLog.R2,
+					readLog.LR, readLog.PC, readLog.xPSR);
 		}
 
 		vTaskDelay(pdMS_TO_TICKS(500));

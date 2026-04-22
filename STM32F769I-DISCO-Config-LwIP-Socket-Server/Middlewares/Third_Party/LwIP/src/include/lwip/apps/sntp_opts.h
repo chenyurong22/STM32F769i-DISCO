@@ -53,7 +53,8 @@
  * NTP timestamps instead.
  */
 #if !defined SNTP_SET_SYSTEM_TIME || defined __DOXYGEN__
-#define SNTP_SET_SYSTEM_TIME(sec)   LWIP_UNUSED_ARG(sec)
+#define LWIP_SNTP 1
+#define SNTP_SET_SYSTEM_TIME(sec)   sntp_set_system_time(sec)
 #endif
 
 /** The maximum number of SNTP servers that can be set */
@@ -72,7 +73,7 @@
  * \#define SNTP_SERVER_ADDRESS "pool.ntp.org"
  */
 #if !defined SNTP_SERVER_DNS || defined __DOXYGEN__
-#define SNTP_SERVER_DNS            0
+#define SNTP_SERVER_DNS            1		/*Updated : Debasish */
 #endif
 
 /**

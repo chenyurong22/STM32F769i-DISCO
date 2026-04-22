@@ -50,8 +50,8 @@ TaskHandle_t readSDCardTaskHandle;
 TaskHandle_t writeSDCardTaskHandle;
 TaskHandle_t showSDCardTaskHandle;
 TaskHandle_t SDFileOperationHandle;
-TaskHandle_t LwIPInitHandle;
-
+TaskHandle_t LwIPLinkHandle;
+TaskHandle_t LwIPClientHandle;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -170,8 +170,12 @@ int main(void)
 			&mountSDMMCTaskHandle);
 
 	/* creation of LwIPInitHandle task */
-	xTaskCreate(StartLwIPInitHandle, "LwIPInitHandle", 2048, NULL, 2,
-			&LwIPInitHandle);
+//	xTaskCreate(StartLwIPLinkHandle, "LwIPLinkHandle", 2024, NULL, 3,
+//			&LwIPLinkHandle);
+
+	/* creation of StartLwIPClientHandle */
+	xTaskCreate(StartLwIPClientHandle, "LwIPClientHandle", 1048, NULL, 2,
+			&LwIPClientHandle);
 
 	/* USER CODE END RTOS_THREADS */
 
@@ -749,15 +753,28 @@ static void MX_GPIO_Init(void)
   * @retval None
   */
 /* USER CODE END Header_StartDefaultTask */
+
+extern struct netif gnetif;
 void StartDefaultTask(void const * argument)
 {
   /* init code for LWIP */
   MX_LWIP_Init();
-  /* USER CODE BEGIN 5 */
+
+  while(!netif_is_up(&gnetif) || gnetif.ip_addr.addr == 0)
+  {
+	  vTaskDelay(pdMS_TO_TICKS(100));
+  }
+
+  //SNTP_init();
+
+  writeFormatData(&huart1, "Network interface is Up [%s] \r\n",
+		  ip4addr_ntoa(netif_ip4_addr(&gnetif)));
+
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    writeFormatData(&huart1, "Running [%s]\r\n", __func__);
+    vTaskDelay(pdMS_TO_TICKS(500));
   }
   /* USER CODE END 5 */
 }

@@ -9,7 +9,8 @@
 #define INC_CUSTOMSOCKET_H_
 
 #include "lwip/sockets.h"
-
+#include "lwip/apps/sntp.h"
+#include <time.h>
 
 
 #endif /* INC_CUSTOMSOCKET_H_ */
