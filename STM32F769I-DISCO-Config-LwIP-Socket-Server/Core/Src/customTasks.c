@@ -9,6 +9,7 @@
 #include "stdint.h"
 #include "custom.h"
 #include "customTrace.h"
+#include "customSNTP.h"
 #include "lwip.h"
 
 #include "lwip/sockets.h"
@@ -43,7 +44,27 @@ void StartmountSDMMCTask(void *argument)
 	}
 }
 
+/* USER CODE BEGIN StartLwIPSntptHandle */
+
 extern struct netif gnetif;
+void StartLwIPSntpHandle(void *argument)
+{
+
+	/* Wait for network to become UP */
+	while (!netif_is_up(&gnetif))
+	{
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}
+	writetoSerial(&huart1, "Network is Up [SNTP] \r\n");
+
+	SNTP_Init();
+
+	for (;;)
+	{
+		//writeFormatData(&huart1, "Running [%s] \r\n", __func__);
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}
+}
 
 /* USER CODE BEGIN StartLwIPInitHandle */
 void StartLwIPLinkHandle(void *argument)
@@ -94,7 +115,7 @@ void StartLwIPClientHandle(void *argument)
 	int connetStatus = 0;
 	uint16_t servPort = 5000;
 
-	writetoSerial(&huart1, "Waiting for network becme high.. \r\n");
+	writetoSerial(&huart1, "Waiting for network become high.. \r\n");
 
 	/* Wait for network to become UP */
 	while (!netif_is_up(&gnetif))

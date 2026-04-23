@@ -24,6 +24,7 @@ void StartshowSDCardTask(void *argument);
 void StartSDFileOperationTask(void *argument);
 void StartLwIPLinkHandle(void *argument);
 void StartLwIPClientHandle(void *argument);
+void StartLwIPSntpHandle(void *argument);
 
 
 
