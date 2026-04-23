@@ -34,7 +34,7 @@ void sntp_set_system_time(uint32_t sec)
 	/* Saving received Day in structure */
 	sDate.Date = timeInfo->tm_mday;
 	sDate.Month = timeInfo->tm_mon + 1;
-	sDate.Year = timeInfo->tm_year = 100;
+	sDate.Year = timeInfo->tm_year - 100;
 	sDate.WeekDay = timeInfo->tm_wday + 1;
 
 	/* Setting RTC time */
