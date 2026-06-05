@@ -31,8 +31,10 @@
 #include "cmsis_os.h"
 #include "lwip/tcpip.h"
 
+
 /* Within 'USER CODE' section, code will be kept by default at each generation */
 /* USER CODE BEGIN 0 */
+#include "customLwIP.h"
 
 /* USER CODE END 0 */
 
@@ -485,6 +487,11 @@ static void ethernetif_input(void const * argument)
       do
       {
         p = low_level_input( netif );
+
+        /* Place the Low Level input buffer here to decode Ethernet Fraame
+         * [DEBASISH] */
+        decode_ehernet_packet(p);
+
         if (p != NULL)
         {
           if (netif->input( p, netif) != ERR_OK )

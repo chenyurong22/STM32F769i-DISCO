@@ -3,6 +3,10 @@
  ******************************************************************************
  * @file           : main.c
  * @brief          : Main program body
+ * 				   : Implements socket client application through LwIP & connects
+ * 				   	 to server application running in Laptop
+ * 				   : Decodes TCP, IP and Ethernet header of LwIP stack
+ * 				   : Receive structured payload from the server
  ******************************************************************************
  * @attention
  *

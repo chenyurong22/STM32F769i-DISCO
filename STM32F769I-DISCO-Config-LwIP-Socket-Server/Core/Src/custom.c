@@ -55,6 +55,7 @@ void writeHexBuffer(uint8_t *pBuffer, uint16_t wLen)
 void writetoSerial(UART_HandleTypeDef *huart, char *pMsg)
 {
 	HAL_UART_Transmit(huart, (uint8_t*) pMsg, strlen(pMsg), 100);
+
 }
 
 void formattoSerial(UART_HandleTypeDef *huart, char *pMsg, int msgLenIn,
@@ -79,7 +80,7 @@ void writeHextoSerial(UART_HandleTypeDef *huart, const uint8_t *pArray,
  * @retval None
  */
 void writeASCIItoSerial(UART_HandleTypeDef *huart, uint8_t bFormat,
-		const uint8_t *pArray, int wArrSize, char *pHeader)
+		const char *pArray, int wArrSize, char *pHeader)
 {
 	int bLen = 0;
 	char outBuff[MAX_ARR_SIZE];

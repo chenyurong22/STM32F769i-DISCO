@@ -14,6 +14,8 @@
 #include "stm32f769xx.h"
 #include "main.h"
 
+#include "custom.h"
+
 extern UART_HandleTypeDef huart5;
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart6;
@@ -65,7 +67,7 @@ int *msgLenOut, uint32_t dwData, const char *pCustMsg);
 void writeHextoSerial(UART_HandleTypeDef *huart, const uint8_t *pArray,
 		int wArrSize);
 
-void writeASCIItoSerial(UART_HandleTypeDef *huart, uint8_t bFormat, const uint8_t *pArray,
+void writeASCIItoSerial(UART_HandleTypeDef *huart, uint8_t bFormat, const char *pArray,
 		int wArrSize, char *pHeader);
 
 void binaryToASCII(const uint8_t *pHex, uint16_t wHexLen, char *pAscii);

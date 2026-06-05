@@ -11,6 +11,8 @@
 #include "customTrace.h"
 #include "customSNTP.h"
 #include "lwip.h"
+#include "customLwIP.h"
+
 
 #include "lwip/sockets.h"
 
@@ -108,12 +110,21 @@ void StartLwIPLinkHandle(void *argument)
 }
 
 /* USER CODE BEGIN StartLwIPClientHandle */
+
+#define SERV_PORT 5050
 void StartLwIPClientHandle(void *argument)
 {
 	int sockID;
 	struct sockaddr_in serverAddr;
-	int connetStatus = 0;
-	uint16_t servPort = 5000;
+	static int clientPort = 0;
+
+	char serverMsg[80];
+	int timeStamp  = 0;
+
+	timeStruct_t recvTimeStruct;
+
+	static int newConnect = 0;
+	static int lastConnect = 0;
 
 	writetoSerial(&huart1, "Waiting for network become high.. \r\n");
 
@@ -142,22 +153,45 @@ void StartLwIPClientHandle(void *argument)
 				sizeof(struct sockaddr_in));
 
 		serverAddr.sin_family = AF_INET;
-		serverAddr.sin_port = htons(servPort);
+		serverAddr.sin_port = htons(SERV_PORT);
 		serverAddr.sin_addr.s_addr = inet_addr("192.168.0.8");
 
 		/* Connecting to the server */
-		connetStatus = connect(sockID, (struct sockaddr* )&serverAddr,
+		clientPort = connect(sockID, (struct sockaddr* )&serverAddr,
 				sizeof(serverAddr));
 
-		if (connetStatus < 0)
+		if (clientPort < 0 && newConnect == 0)
 		{
 			writetoSerial(&huart1, "Connection to the server Failed! \r\n");
 			close(sockID);
 			vTaskDelay(pdMS_TO_TICKS(3000));
+			lastConnect = 0;
 			continue;
 		}
 
-		writetoSerial(&huart1, "Connection to the server succeed :) \r\n");
+		newConnect = 1;
+		if (lastConnect == 0 && newConnect == 1)
+		{
+			lastConnect = 1;
+			writetoSerial(&huart1, "Connection to the server succeed :) \r\n");
+		}
+
+		/* Receive message from connected Server */
+		//int len  = recv(clientPort, serverMsg, sizeof(serverMsg) - 1, 0);
+		int len  = recv(clientPort, &recvTimeStruct, sizeof(recvTimeStruct), 0);
+
+		if(len > 0)
+		{
+			len =  snprintf(serverMsg, sizeof(serverMsg), "[%d] [%s]",
+					recvTimeStruct.frameCount,
+					recvTimeStruct.timeStr );
+			serverMsg[len] = '\0';
+
+
+			writetoSerial(&huart1, serverMsg);
+			writetoSerial(&huart1, "\r\n");
+		}
+
 		vTaskDelay(pdMS_TO_TICKS(500));
 
 		/* Close the socket descriptor for next connect */

@@ -8,6 +8,7 @@
 #include "customSNTP.h"
 #include "custom.h"
 #include "lwip/apps/sntp.h"
+#include "dns.h"
 
 extern RTC_HandleTypeDef hrtc;
 
@@ -88,3 +89,9 @@ void verifyRTCTime()
 	writeFormatData(&huart1, "Set Time : [%s] \r\n", currTime);
 }
 
+
+void getHostName()
+{
+	ip_addr_t hostAddr;
+	dns_gethostbyname("www.google.com", &hostAddr, 0, NULL);
+}
