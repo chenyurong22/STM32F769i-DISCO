@@ -1001,7 +1001,7 @@ void StartSetRTCTime(void const *argument)
 		/* Wait for StartNtpTimeReceive task to Notify */
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-		HAL_GPIO_TogglePin(GPIOJ, GPIO_PIN_5); /* GREEN LED:PIN_5, RED LED: PIN_13 ✍ */
+		HAL_GPIO_WritePin(GPIOJ, GPIO_PIN_5, GPIO_PIN_SET); /* GREEN LED:PIN_5, RED LED: PIN_13 ✍ */
 
 		/* Receiving Time information */
 		if (xQueueReceive(uinxTimeISTQueue, &receivedTime,
@@ -1011,7 +1011,7 @@ void StartSetRTCTime(void const *argument)
 		}
 
 		vTaskDelay(pdMS_TO_TICKS(500));
-		HAL_GPIO_TogglePin(GPIOJ, GPIO_PIN_5);
+		HAL_GPIO_WritePin(GPIOJ, GPIO_PIN_5, GPIO_PIN_RESET);
 
 		/* Suspend current task after one execution */
 		vTaskSuspend(NULL);
