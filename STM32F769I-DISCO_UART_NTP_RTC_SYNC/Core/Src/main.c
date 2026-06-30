@@ -233,6 +233,7 @@ void SystemClock_Config(void)
   /** Configure LSE Drive Capability
   */
   HAL_PWR_EnableBkUpAccess();
+  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
 
   /** Configure the main internal regulator output voltage
   */
@@ -242,12 +243,12 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI
-                              |RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSE
+                              |RCC_OSCILLATORTYPE_LSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 25;
@@ -369,6 +370,7 @@ static void MX_RNG_Init(void)
 
 /**
   * @brief RTC Initialization Function
+  * @param None
   * @retval None
   */
 static void MX_RTC_Init(void)
@@ -946,9 +948,9 @@ void StartDefaultTask(void const * argument)
 QueueHandle_t uinxTimeISTQueue;
 
 /* USER CODE END Header_StartNtpTimeReceive */
-void StartNtpTimeReceive(void const *argument)
+void StartNtpTimeReceive(void const * argument)
 {
-	/* USER CODE BEGIN StartNtpTimeReceive */
+  /* USER CODE BEGIN StartNtpTimeReceive */
 	RTC_TimeTypeDef timeInfo;
 
 	/* Crate a Queue to share Time information to StartSetRTCTime task */
@@ -980,7 +982,7 @@ void StartNtpTimeReceive(void const *argument)
 
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
-	/* USER CODE END StartNtpTimeReceive */
+  /* USER CODE END StartNtpTimeReceive */
 }
 
 /* USER CODE BEGIN Header_StartSetRTCTime */
@@ -990,9 +992,9 @@ void StartNtpTimeReceive(void const *argument)
 * @retval None
 */
 /* USER CODE END Header_StartSetRTCTime */
-void StartSetRTCTime(void const *argument)
+void StartSetRTCTime(void const * argument)
 {
-	/* USER CODE BEGIN StartSetRTCTime */
+  /* USER CODE BEGIN StartSetRTCTime */
 
 	uint32_t receivedTime;
 	/* Infinite loop */
@@ -1016,7 +1018,7 @@ void StartSetRTCTime(void const *argument)
 		/* Suspend current task after one execution */
 		vTaskSuspend(NULL);
 	}
-	/* USER CODE END StartSetRTCTime */
+  /* USER CODE END StartSetRTCTime */
 }
 
 /* USER CODE BEGIN Header_StartVerifyRtcTime */
