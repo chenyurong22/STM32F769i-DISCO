@@ -32,6 +32,7 @@ void StartUARTLinkHandle(void *argument);
 void StartUART_NtpTimeReceive(void *argument);
 void StartUART_NtpTimeSet(void *argument);
 void StartDisplay_DeviceTime(void *argument);
+void StartReset_Device(void *argument);
 
 
 /* External Task Handler declaration */

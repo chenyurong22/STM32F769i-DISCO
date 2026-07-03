@@ -61,6 +61,7 @@ TaskHandle_t SDFileOperationHandle;
 TaskHandle_t LwIPLinkHandle;
 TaskHandle_t SNTP_LinkHandle;
 TaskHandle_t UARTLinkHandle;
+TaskHandle_t Reset_DeviceHandle;
 
 TaskHandle_t LwIPClientHandle;
 
@@ -103,8 +104,6 @@ static void MX_RTC_Init(void);
 static void MX_SDMMC2_SD_Init(void);
 static void MX_USART1_UART_Init(void);
 void StartDefaultTask(void const * argument);
-
-
 
 /* USER CODE BEGIN PFP */
 
@@ -160,7 +159,7 @@ int main(void)
   MX_RTC_Init();
   MX_SDMMC2_SD_Init();
   MX_USART1_UART_Init();
-  //MX_FATFS_Init();
+  MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
 
   HAL_UART_Receive_IT(&huart1, &rxData, 1);
@@ -219,6 +218,12 @@ int main(void)
 	/* creation of StartDisplay_DeviceTime */
 	status = xTaskCreate(StartDisplay_DeviceTime, "Display_DeviceTimeHandle", 512, NULL, 4,
 			&Display_DeviceTimeHandle);
+#endif
+
+#if 1
+	/* creation of StartReset_Device */
+	status = xTaskCreate(StartReset_Device, "Reset_DeviceHandle", 512, NULL, 4,
+			&Reset_DeviceHandle);
 #endif
 
   /* USER CODE END RTOS_THREADS */
@@ -753,11 +758,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF9_QUADSPI;
   HAL_GPIO_Init(QSPI_D3_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : B_USER_Pin */
-  GPIO_InitStruct.Pin = B_USER_Pin;
+  /*Configure GPIO pin : PA0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(B_USER_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PH7 */
   GPIO_InitStruct.Pin = GPIO_PIN_7;
@@ -780,6 +785,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -861,31 +870,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
   /* USER CODE END Callback 1 */
 }
-
-#if 0
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	HAL_GPIO_TogglePin(GPIOJ, GPIO_PIN_5);
-
-	BaseType_t xHighPriorityTaskWoken = pdFALSE;
-	if(huart->Instance == USART1)
-    {
-		rxBuffer[count] = rxData;
-		count++;
-
-		if(count == 8)
-		{
-			count = 0;
-
-			vTaskNotifyGiveFromISR(LwIPLinkHandle, &xHighPriorityTaskWoken);
-			portYIELD_FROM_ISR(xHighPriorityTaskWoken);
-		}
-
-        HAL_UART_Receive_IT(&huart1, &rxData, 1);
-    }
-}
-#endif
-
 
 /**
   * @brief  This function is executed in case of error occurrence.

@@ -277,8 +277,6 @@ void Error_Handler(void);
 #define D20_GPIO_Port GPIOH
 #define RMII_REF_CLK_Pin GPIO_PIN_1
 #define RMII_REF_CLK_GPIO_Port GPIOA
-#define B_USER_Pin GPIO_PIN_0
-#define B_USER_GPIO_Port GPIOA
 #define ARD_A1_Pin GPIO_PIN_4
 #define ARD_A1_GPIO_Port GPIOA
 #define RMII_RXD0_Pin GPIO_PIN_4

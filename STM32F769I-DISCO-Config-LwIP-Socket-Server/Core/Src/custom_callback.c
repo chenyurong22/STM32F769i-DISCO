@@ -19,6 +19,8 @@ extern volatile uint8_t rxBuffer[8];
 extern volatile uint8_t count;
 
 extern osThreadId NtpTimeEpochTasHandle;
+extern TaskHandle_t Reset_DeviceHandle;
+
 uint8_t complete = 0;
 
 #define FREEROS 1
@@ -26,8 +28,9 @@ uint8_t complete = 0;
 
 extern osThreadId NtpTimeReceiveHandle;
 extern TaskHandle_t LwIPLinkHandle;
+extern TaskHandle_t SNTP_LinkHandle;
+extern TaskHandle_t UART_NtpTimeReceiveHandle;
 
-#if 1
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	BaseType_t xHighPriorityTaskWoken = pdFALSE;
@@ -48,8 +51,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     }
 }
 
-extern TaskHandle_t SNTP_LinkHandle;
-extern TaskHandle_t UART_NtpTimeReceiveHandle;
+
 void process_UART_Receive(const uint8_t *rxBuffer)
 {
 	BaseType_t xHighPriorityTaskWoken = pdFALSE;
@@ -69,5 +71,22 @@ void process_UART_Receive(const uint8_t *rxBuffer)
 	}
 }
 
+/**
+  * @brief  EXTI line detection callbacks.
+  * @param  GPIO_Pin Specifies the pins connected EXTI line
+  * @retval None
+  */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-#endif
+	if (GPIO_Pin == GPIO_PIN_0)
+	{
+		HAL_GPIO_TogglePin(GPIOJ, GPIO_PIN_5);
+
+		vTaskNotifyGiveFromISR(Reset_DeviceHandle, &xHigherPriorityTaskWoken);
+
+		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	}
+
+}

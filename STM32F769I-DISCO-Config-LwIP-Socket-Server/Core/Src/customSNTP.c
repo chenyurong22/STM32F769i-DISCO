@@ -10,8 +10,10 @@
 #include "lwip/apps/sntp.h"
 #include "dns.h"
 
+
 #include "FreeRTOS.h"
 #include "task.h"
+#include "lwip/opt.h"
 
 extern RTC_HandleTypeDef hrtc;
 

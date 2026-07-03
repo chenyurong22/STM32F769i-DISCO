@@ -413,3 +413,28 @@ void StartDisplay_DeviceTime(void *argument)
 	/* USER CODE END StartDisplay_DeviceTime */
 }
 
+
+/* USER CODE BEGIN Header_StartReset_Device */
+/**
+ * @brief Function implementing the StartReset_Device thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_StartReset_Device */
+void StartReset_Device(void *argument)
+{
+	/* USER CODE BEGIN StartDisplay_DeviceTime */
+
+	/* Infinite loop */
+	for (;;)
+	{
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+		writetoSerial(&huart1, "Resetting STM32 device ..\r\n");
+
+		NVIC_SystemReset();
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}
+	/* USER CODE END StartDisplay_DeviceTime */
+}
+
+
