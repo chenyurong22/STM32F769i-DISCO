@@ -15,6 +15,8 @@
 #include "stdio.h"
 #include "custom.h"
 
+extern volatile uint8_t rxBuffer[8];
+
 
 /* Private function prototypes */
 void StartmountSDMMCTask(void *argument);
@@ -24,7 +26,18 @@ void StartshowSDCardTask(void *argument);
 void StartSDFileOperationTask(void *argument);
 void StartLwIPLinkHandle(void *argument);
 void StartLwIPClientHandle(void *argument);
-void StartLwIPSntpHandle(void *argument);
+void StartSNTP_LinkHandle(void *argument);
+void StartUARTLinkHandle(void *argument);
+
+void StartUART_NtpTimeReceive(void *argument);
+void StartUART_NtpTimeSet(void *argument);
+void StartDisplay_DeviceTime(void *argument);
+
+
+/* External Task Handler declaration */
+extern TaskHandle_t UART_NtpTimeReceiveHandle;
+extern TaskHandle_t UART_NtpTimeSetHandle;
+extern TaskHandle_t Display_DeviceTimeHandle;
 
 
 

@@ -13,7 +13,6 @@
 #include "lwip.h"
 #include "customLwIP.h"
 
-
 #include "lwip/sockets.h"
 
 entry_t logEntry;
@@ -46,32 +45,17 @@ void StartmountSDMMCTask(void *argument)
 	}
 }
 
-/* USER CODE BEGIN StartLwIPSntptHandle */
-
-extern struct netif gnetif;
-void StartLwIPSntpHandle(void *argument)
-{
-
-	/* Wait for network to become UP */
-	while (!netif_is_up(&gnetif))
-	{
-		vTaskDelay(pdMS_TO_TICKS(500));
-	}
-	writetoSerial(&huart1, "Network is Up [SNTP] \r\n");
-
-	SNTP_Init();
-
-	for (;;)
-	{
-		//writeFormatData(&huart1, "Running [%s] \r\n", __func__);
-		vTaskDelay(pdMS_TO_TICKS(500));
-	}
-}
-
 /* USER CODE BEGIN StartLwIPInitHandle */
+extern struct netif gnetif;
+extern TaskHandle_t SNTP_LinkHandle;
+
 void StartLwIPLinkHandle(void *argument)
 {
 	uint16_t loopCount = 0;
+
+	/* Resume after Receiving  notification from HAL_UART_RxCpltCallback */
+	ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
 	for (;;)
 	{
 		if (netif_is_link_up(&gnetif))
@@ -84,11 +68,12 @@ void StartLwIPLinkHandle(void *argument)
 							ip4addr_ntoa(netif_ip4_addr(&gnetif)));
 
 					loopCount++;
-					if (loopCount > 20)
+					if (loopCount > 10)
 					{
-						writetoSerial(&huart1, "Deleting the task ... \r\n");
+						/* Block StartLwIPSntpHandle task till LwIP is up */
+						xTaskNotifyGive(SNTP_LinkHandle);
+
 						vTaskDelete(NULL);
-						vTaskDelay(pdMS_TO_TICKS(100));
 					}
 				}
 				else
@@ -109,6 +94,48 @@ void StartLwIPLinkHandle(void *argument)
 	}
 }
 
+/* USER CODE BEGIN StartLwIPSntptHandle */
+
+void StartSNTP_LinkHandle(void *argument)
+{
+
+	/* Resume after Receiving  notification from StartLwIPLinkHandle */
+	ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+	/* Wait for network to become UP */
+	while (!netif_is_up(&gnetif))
+	{
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}
+	SNTP_Init();
+
+	for (;;)
+	{
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}
+}
+
+/* USER CODE BEGIN StartLwIPSntptHandle */
+extern struct netif gnetif;
+void StartUARTLinkHandle(void *argument)
+{
+
+	/* Resume after Receiving  notification from StartLwIPLinkHandle */
+	ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+	/* Wait for network to become UP */
+	while (!netif_is_up(&gnetif))
+	{
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}
+	SNTP_Init();
+
+	for (;;)
+	{
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}
+}
+
 /* USER CODE BEGIN StartLwIPClientHandle */
 
 #define SERV_PORT 5050
@@ -119,7 +146,7 @@ void StartLwIPClientHandle(void *argument)
 	static int clientPort = 0;
 
 	char serverMsg[80];
-	int timeStamp  = 0;
+	int timeStamp = 0;
 
 	timeStruct_t recvTimeStruct;
 
@@ -143,8 +170,8 @@ void StartLwIPClientHandle(void *argument)
 		if (sockID < 0)
 		{
 			writetoSerial(&huart1, "Socket creation failed \r\n");
-            vTaskDelay(pdMS_TO_TICKS(1000));
-            continue;
+			vTaskDelay(pdMS_TO_TICKS(1000));
+			continue;
 		}
 
 		/* Configuring server address */
@@ -177,16 +204,13 @@ void StartLwIPClientHandle(void *argument)
 		}
 
 		/* Receive message from connected Server */
-		//int len  = recv(clientPort, serverMsg, sizeof(serverMsg) - 1, 0);
-		int len  = recv(clientPort, &recvTimeStruct, sizeof(recvTimeStruct), 0);
+		int len = recv(clientPort, &recvTimeStruct, sizeof(recvTimeStruct), 0);
 
-		if(len > 0)
+		if (len > 0)
 		{
-			len =  snprintf(serverMsg, sizeof(serverMsg), "[%d] [%s]",
-					recvTimeStruct.frameCount,
-					recvTimeStruct.timeStr );
+			len = snprintf(serverMsg, sizeof(serverMsg), "[%d] [%s]",
+					recvTimeStruct.frameCount, recvTimeStruct.timeStr);
 			serverMsg[len] = '\0';
-
 
 			writetoSerial(&huart1, serverMsg);
 			writetoSerial(&huart1, "\r\n");
@@ -290,5 +314,102 @@ void StartSDFileOperationTask(void *argument)
 
 		vTaskDelay(pdMS_TO_TICKS(100));
 	}
+}
+/* Task from other source */
+
+/* Global Queue for sharing Time information */
+
+QueueHandle_t uinxTimeISTQueue;
+
+/* USER CODE END Header_StartNtpTimeReceive */
+void StartUART_NtpTimeReceive(void *argument)
+{
+	/* USER CODE BEGIN StartNtpTimeReceive */
+	RTC_TimeTypeDef timeInfo;
+
+	/* Crate a Queue to share Time information to StartSetRTCTime task */
+	uinxTimeISTQueue = xQueueCreate(5, sizeof(uint32_t));
+
+	/* Infinite loop */
+	for (;;)
+	{
+		/* 🔥 DO NOT include any blocking API before ulTaskNotifyTake() ⛔ */
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* WAIT for the notification ✍. Holds*/
+
+		/* Make StartSetRTCTime READY */
+		vTaskResume(UART_NtpTimeSetHandle);
+
+		/* Convert to IST epoch */
+		uint32_t IST_epoch = getIST(rxBuffer);
+
+		/* Encapsulate is time structure */
+		EpochToRtcTime(IST_epoch, &timeInfo);
+
+		/* Sending Time information to Queue */
+		xQueueSend(uinxTimeISTQueue, &IST_epoch, portMAX_DELAY);
+
+		/* ✍ Notify StartSetRTCTime task to unblock */
+		xTaskNotifyGive(UART_NtpTimeSetHandle);
+
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}
+	/* USER CODE END StartNtpTimeReceive */
+}
+
+/* USER CODE BEGIN Header_StartSetRTCTime */
+/**
+ * @brief Function implementing the SetRTCTime thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_StartSetRTCTime */
+void StartUART_NtpTimeSet(void *argument)
+{
+	/* USER CODE BEGIN StartSetRTCTime */
+
+	uint32_t receivedTime;
+	/* Infinite loop */
+	for (;;)
+	{
+		/* Wait for StartNtpTimeReceive task to Notify */
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+		/* Receiving Time information */
+		if (xQueueReceive(uinxTimeISTQueue, &receivedTime,
+		portMAX_DELAY) == pdPASS)
+		{
+			setRtcTime_IST(receivedTime);
+		}
+
+		//writeFormatData(&huart1, "Running [%s] \r\n", __func__);
+		xTaskNotifyGive(Display_DeviceTimeHandle);
+
+		/* Suspend current task after one execution */
+		vTaskSuspend(NULL);
+	}
+	/* USER CODE END StartSetRTCTime */
+}
+
+/* USER CODE BEGIN Header_StartDisplay_DeviceTime */
+/**
+ * @brief Function implementing the VerifyRtcTime thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_StartDisplay_DeviceTime */
+void StartDisplay_DeviceTime(void *argument)
+{
+	/* USER CODE BEGIN StartDisplay_DeviceTime */
+	ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+	/* Infinite loop */
+	for (;;)
+	{
+		/* Verify RTC time has been Set */
+		verifyRTCTime();
+
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}
+	/* USER CODE END StartDisplay_DeviceTime */
 }
 

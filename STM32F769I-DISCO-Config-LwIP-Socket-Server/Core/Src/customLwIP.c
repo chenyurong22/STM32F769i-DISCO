@@ -128,8 +128,7 @@ void decode_ehernet_packet(struct pbuf *p)
 				wAcknowCount);
 		msgMAC[len] = '\0';
 
-		writetoSerial(&huart1, (char*)msgMAC);
-		//writetoSerial(&huart1, (char*)msgSEQ_ACK);
+		//writetoSerial(&huart1, (char*)msgMAC); /* Skip displaying IP stack messages */
 	}
 }
 

@@ -12,6 +12,8 @@
 #include <stdbool.h>
 #include <stdarg.h>
 
+extern RTC_HandleTypeDef hrtc;
+
 void _gettimeofday()
 {
 }
@@ -215,4 +217,84 @@ void TurnGreenLED_OFF()
 {
 	GPIOJ->ODR &= ~(1U << 5);
 	//GPIOJ->BSRR = (1U << (5 + 16));
+}
+
+
+/* RTC Related functions */
+#define NTP_UNIX_OFFSET 2208988800U
+#define IST_OFFSET_SECONDS 19800U
+
+uint32_t getIST(const uint8_t *ntpEpochArray)
+{
+	uint32_t ntpTime  =
+            ((uint8_t)ntpEpochArray[3] << 24) |
+              ((uint8_t)ntpEpochArray[4] << 16) |
+              ((uint8_t)ntpEpochArray[5] << 8)  |
+               (uint8_t)ntpEpochArray[6];
+
+	uint32_t unixTime = ntpTime - NTP_UNIX_OFFSET;
+	uint32_t uinxTime_IST = unixTime + IST_OFFSET_SECONDS;
+
+	return uinxTime_IST;
+}
+
+void setRtcTime_IST(const uint32_t uinxTime_IST)
+{
+	struct tm *tmInfo = gmtime((time_t*)&uinxTime_IST);
+
+	RTC_TimeTypeDef sTime = {0};
+	RTC_DateTypeDef sDate = {0};
+
+	sTime.Hours   = tmInfo->tm_hour;
+	sTime.Minutes = tmInfo->tm_min;
+	sTime.Seconds = tmInfo->tm_sec;
+
+	sDate.Date    = tmInfo->tm_mday;
+	sDate.Month   = tmInfo->tm_mon + 1;
+	sDate.Year    = tmInfo->tm_year - 100;
+	sDate.WeekDay = tmInfo->tm_wday + 1;
+
+	HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+	HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+}
+
+void verifyRTCTime()
+{
+	char currTime[50];
+
+	RTC_TimeTypeDef gTime;
+	RTC_DateTypeDef gDate;
+
+	HAL_RTC_GetTime(&hrtc, &gTime, RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&hrtc, &gDate, RTC_FORMAT_BIN);
+
+	sprintf(currTime, "%02d:%02d:%02d", gTime.Hours, gTime.Minutes,
+			gTime.Seconds);
+
+	writeFormatData(&huart1, "Current Time (IST): [%s] \r\n", currTime);
+}
+
+void EpochToRtcTime(uint32_t uinxTime_IST, RTC_TimeTypeDef *sTime)
+{
+    uint32_t secondsOfDay = uinxTime_IST % 86400;
+
+    sTime->Hours   = secondsOfDay / 3600;
+    sTime->Minutes = (secondsOfDay % 3600) / 60;
+    sTime->Seconds = secondsOfDay % 60;
+
+    sTime->TimeFormat = RTC_HOURFORMAT12_AM;
+    sTime->DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+    sTime->StoreOperation = RTC_STOREOPERATION_RESET;
+}
+
+void DisplayIST(RTC_TimeTypeDef *sTime)
+{
+	char timeStr[50];
+
+	snprintf(timeStr, sizeof(timeStr), "Time: [%02u:%02u:%02u] \r\n",
+			sTime->Hours,
+			sTime->Minutes,
+			sTime->Seconds);
+
+	writetoSerial(&huart1, timeStr);
 }

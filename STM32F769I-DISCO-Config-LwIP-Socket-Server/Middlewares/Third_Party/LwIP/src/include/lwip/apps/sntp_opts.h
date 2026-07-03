@@ -39,9 +39,8 @@
 
 #include "lwip/opt.h"
 #include "lwip/prot/iana.h"
+
 #include "customSNTP.h"
-
-
 /**
  * @defgroup sntp_opts Options
  * @ingroup sntp
@@ -71,9 +70,8 @@
 
 /** Set this to 1 to support DNS names (or IP address strings) to set sntp servers
  * One server address/name can be defined as default if SNTP_SERVER_DNS == 1:
-*/
-#define SNTP_SERVER_ADDRESS "pool.ntp.org"
-
+ * \#define SNTP_SERVER_ADDRESS "pool.ntp.org"
+ */
 #if !defined SNTP_SERVER_DNS || defined __DOXYGEN__
 #define SNTP_SERVER_DNS            1
 #endif
@@ -140,9 +138,9 @@
  */
 #if !defined SNTP_STARTUP_DELAY || defined __DOXYGEN__
 #ifdef LWIP_RAND
-#define SNTP_STARTUP_DELAY          0
-#else
 #define SNTP_STARTUP_DELAY          1
+#else
+#define SNTP_STARTUP_DELAY          0
 #endif
 #endif
 

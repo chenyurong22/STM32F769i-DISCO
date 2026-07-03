@@ -14,7 +14,7 @@
 #include "stm32f769xx.h"
 #include "main.h"
 
-#include "custom.h"
+#include "time.h"
 
 extern UART_HandleTypeDef huart5;
 extern UART_HandleTypeDef huart1;
@@ -108,6 +108,13 @@ void TurnGreenLED_OFF();
 
 void ToggleGreenLED();
 void ToggleRedLED();
+
+/* RTC related functions */
+uint32_t getIST(const uint8_t *ntpEpochArray);
+void setRtcTime_IST(const uint32_t uinxTime_IST);
+void verifyRTCTime();
+void EpochToRtcTime(uint32_t uinxTime_IST, RTC_TimeTypeDef *sTime);
+void DisplayIST(RTC_TimeTypeDef *sTime);
 
 
 

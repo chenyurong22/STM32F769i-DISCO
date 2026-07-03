@@ -14,6 +14,5 @@
 
 void sntp_set_system_time(uint32_t sec);
 void SNTP_Init(void);
-void verifyRTCTime();
 
 #endif /* INC_CUSTOMSNTP_H_ */
