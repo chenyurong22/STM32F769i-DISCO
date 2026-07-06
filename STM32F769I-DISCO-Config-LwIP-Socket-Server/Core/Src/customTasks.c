@@ -408,7 +408,7 @@ void StartDisplay_DeviceTime(void *argument)
 	for (;;)
 	{
 		/* Verify RTC time has been Set */
-		verifyRTCTime();
+		//verifyRTCTime();
 
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
@@ -474,15 +474,18 @@ void StartMicroSD_mount(void *argument)
  * @retval None
  */
 /* USER CODE END StartMicroSD_unmount */
+
+extern FIL fp;
 void StartMicroSD_unmount(void *argument)
 {
 	for(;;)
 	{
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* WAIT for the notification ✍. Holds*/
 		writeFormatData(&huart1, "[%s] \r\n", __func__);
+
+		SDMMC2_Unmount(&fp);
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
-
 }
 
 
@@ -511,14 +514,31 @@ void StartMicroSD_read(void *argument)
  */
 /* USER CODE END StartMicroSD_write */
 
+
+const char *pFileName = "TimeLog.txt";
 void StartMicroSD_write(void *argument)
 {
+	const char aCurTime[50];
+	const char aCurDate[50];
+
+	const char aLogTime[100];
+	size_t dataLen = 0;
+	size_t wByteWritten = 0;
+
 	for(;;)
 	{
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* WAIT for the notification ✍. Holds*/
-		writeFormatData(&huart1, "[%s] \r\n", __func__);
+
+		/* Retrieve Current Time */
+		getCurrentTime(aCurTime, aCurDate);
+		dataLen = snprintf(aLogTime, sizeof(aLogTime), "Recorded Time:[%s] \r\n", aCurTime);
+
+		SDMMC2_WriteFileText(pFileName, aLogTime, dataLen, &wByteWritten);
+
+		writeFormatData(&huart1, "Instant Time: [%s] Byte written: [%d] Size: [%d] \r\n",
+				aCurTime, wByteWritten, fileSize(pFileName));
+
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
 }
-
 

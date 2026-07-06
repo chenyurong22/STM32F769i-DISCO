@@ -115,6 +115,21 @@ void setRtcTime_IST(const uint32_t uinxTime_IST);
 void verifyRTCTime();
 void EpochToRtcTime(uint32_t uinxTime_IST, RTC_TimeTypeDef *sTime);
 void DisplayIST(RTC_TimeTypeDef *sTime);
+void getCurrentTime(const char *pCurtime, const char *pCurDate);
+
+#define WRITE_ERR(taskHandle)\
+		writeFormatData(&huart1,"[%s] : Taks creation Failed\r\n", pcTaskGetName(taskHandle))
+
+#define ASSERT_TASK(status, taskHandle)\
+							do								\
+								{							\
+								if((status) != pdPASS)		\
+									{						\
+										WRITE_ERR(taskHandle);\
+										\
+									} \
+								} while(0);
+
 
 
 

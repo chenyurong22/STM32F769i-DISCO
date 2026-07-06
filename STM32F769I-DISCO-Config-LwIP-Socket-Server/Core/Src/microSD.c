@@ -79,8 +79,10 @@ void readSector0()
 			| (sector0[0x1BE + 10] << 16) | (sector0[0x1BE + 11] << 24);
 
 	disk_read(0, bs, start_lba, 1);
-
 }
+
+/* Global File pointer */
+FIL fp;
 
 FRESULT SDMMC2_mount()
 {
@@ -92,14 +94,27 @@ FRESULT SDMMC2_mount()
 FRESULT SDMMC2_Unmount(FIL *pFIL)
 {
 	FRESULT res;
-	f_close(pFIL);
+
+	if (pFIL != NULL)
+	{
+		res = f_close(pFIL);
+
+		if(res != FR_OK)
+		{
+			writetoSerial(&huart1, "File close Failed \r\n");
+			return res;
+		}
+	}
 
 	res = f_mount(NULL, "0:", 1);
 
 	if (res != FR_OK)
 	{
 		writetoSerial(&huart1, "SD Card Un-mounting failed \r\n");
-		return res;
+	}
+	else
+	{
+		writetoSerial(&huart1, "SD Card Un-mounting succeed \r\n");
 	}
 
 	return res;
@@ -108,8 +123,7 @@ FRESULT SDMMC2_Unmount(FIL *pFIL)
 FRESULT SDMMC2_ReadFile(const char *fname, uint8_t bType, uint8_t *aBuffer,
 		size_t *wByeCount)
 {
-
-	FIL fp;
+	//FIL fp;
 	FRESULT status;
 	UINT bytesRead;
 
@@ -137,72 +151,6 @@ FRESULT SDMMC2_ReadFile(const char *fname, uint8_t bType, uint8_t *aBuffer,
 
 }
 
-
-FRESULT SDMMC2_WriteFile(const char *fname, entry_t *dataEntry,
-		size_t *wByeCount)
-{
-
-	FIL fp;
-	FRESULT status;
-	static bool fileOped = false;
-	UINT bytesWritten = 0;
-	char writeBuffer[100];
-	DWORD size = 0;
-
-	if (fileOped == false)
-	{
-		status = f_open(&fp, fname, FA_WRITE | FA_OPEN_ALWAYS);
-		if (status != FR_OK)
-		{
-			writetoSerial(&huart1, "Error READING/CREATING file !\r\n");
-			return FR_DISK_ERR;
-		}
-
-		fileOped = true;
-	}
-
-	/* Moving to the end of the file for append mode */
-	if (f_lseek(&fp, f_size(&fp)) != FR_OK)
-	{
-		writetoSerial(&huart1, "Error seeking file end! \r\n");
-		return FR_INT_ERR;
-	}
-
-	if (f_size(&fp) > 4000)
-	{
-		if (f_lseek(&fp, 0) == FR_OK)
-		{
-			writetoSerial(&huart1,
-					"[** New Data at start position after truncate **]\r\n");
-			f_truncate(&fp);
-			f_sync(&fp);
-		}
-	}
-
-	/* Formating the buffer for writing to the MicroSD card */
-	snprintf(writeBuffer, sizeof(writeBuffer), "[Index: %d] [%s] \n",
-			dataEntry->index, dataEntry->data);
-
-	status = f_write(&fp, writeBuffer, strlen(writeBuffer), &bytesWritten);
-
-	if (status != FR_OK || bytesWritten == 0)
-	{
-		writetoSerial(&huart1, "Error writing to file !\r\n");
-		f_close(&fp);
-		return FR_DISK_ERR;
-	}
-
-	/* Ensure Data is flushed into SDMMC and return file size */
-	size = f_size(&fp);
-
-	f_sync(&fp);
-	f_close(&fp);
-
-	/* Return updated size */
-	*wByeCount = size;
-
-	return status;
-}
 
 FSIZE_t fileSize(const char *pFileName)
 {
@@ -233,5 +181,98 @@ FRESULT SDMMCDelete(const char *pFilename)
 	}
 
 	return result;
+}
+
+FRESULT SDMMC2_WriteFileBin(const char *fname, entry_t *dataEntry,
+		size_t *wByeCount)
+{
+
+	FIL fp;
+	FRESULT status;
+	UINT bytesWritten = 0;
+	static uint8_t indx = 0;
+	char writeBuffer[80];
+
+	status = f_open(&fp, fname, FA_WRITE | FA_OPEN_ALWAYS);
+
+	if (status != FR_OK)
+	{
+		writetoSerial(&huart1, "Error reading READING/CREATING file !\r\n");
+		return FR_DISK_ERR;
+	}
+
+	/* Moving to the end of the file for append mode */
+	if (f_lseek(&fp, f_size(&fp)) != FR_OK)
+	{
+		writetoSerial(&huart1, "Error seek file end! \r\n");
+		return FR_INT_ERR;
+	}
+
+	/* Writing to File */
+
+	snprintf(writeBuffer, sizeof(writeBuffer), "[Index: %d] [%s] \r\n", f_size(&fp)/64,
+			dataEntry->data);
+
+	status = f_write(&fp, writeBuffer, strlen(writeBuffer), &bytesWritten);
+
+	if (status != FR_OK || bytesWritten == 0)
+	{
+		writetoSerial(&huart1, "Error writing to file !\r\n");
+		f_close(&fp);
+		return FR_DISK_ERR;
+	}
+
+	/* Ensure Data is flused into SDMMC */
+	f_sync(&fp);
+	f_close(&fp);
+
+	/* Returning number of byte written */
+	*wByeCount = bytesWritten;
+
+	return status;
+}
+
+
+FRESULT SDMMC2_WriteFileText(const char *fname, const char *data, size_t dataLen,
+		size_t *wByeCount)
+{
+
+	FIL fp;
+	FRESULT status;
+	UINT bytesWritten = 0;
+
+	status = f_open(&fp, fname, FA_WRITE | FA_OPEN_ALWAYS);
+
+	if (status != FR_OK)
+	{
+		writetoSerial(&huart1, "Error WRITING/CREATING file !\r\n");
+		return FR_DISK_ERR;
+	}
+
+	/* Moving to the end of the file for append mode */
+	if (f_lseek(&fp, f_size(&fp)) != FR_OK)
+	{
+		writetoSerial(&huart1, "Error seek file end! \r\n");
+		return FR_INT_ERR;
+	}
+
+	/* Writing to File */
+	status = f_write(&fp, data, dataLen, &bytesWritten);
+
+	if (status != FR_OK || bytesWritten == 0)
+	{
+		writetoSerial(&huart1, "Error writing to file !\r\n");
+		f_close(&fp);
+		return FR_DISK_ERR;
+	}
+
+	/* Ensure Data is flused into SDMMC */
+	f_sync(&fp);
+	f_close(&fp);
+
+	/* Returning number of byte written */
+	*wByeCount = bytesWritten;
+
+	return status;
 }
 

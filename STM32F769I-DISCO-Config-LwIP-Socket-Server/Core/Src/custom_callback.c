@@ -46,7 +46,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 			portYIELD_FROM_ISR(xHighPriorityTaskWoken);
 		}
-
         HAL_UART_Receive_IT(&huart1, &rxData, 1);
     }
 }
@@ -68,22 +67,18 @@ void process_UART_Receive(const uint8_t *rxBuffer, BaseType_t *xHighPriorityTask
 		break;
 
 	case 0x01:
-		//writetoSerial(&huart1, "Mounting ..\r\n");
 		vTaskNotifyGiveFromISR(MicroSD_mountHandle, xHighPriorityTaskWoken);
 		break;
 
 	case 0x02:
-		//writetoSerial(&huart1, "Un-mounting ..\r\n");
 		vTaskNotifyGiveFromISR(MicroSD_unmountHandle, xHighPriorityTaskWoken);
 		break;
 
 	case 0x03:
-		//writetoSerial(&huart1, "Reading ..\r\n");
 		vTaskNotifyGiveFromISR(MicroSD_readHandle, xHighPriorityTaskWoken);
 		break;
 
 	case 0x04:
-		//writetoSerial(&huart1, "Writing ..\r\n");
 		vTaskNotifyGiveFromISR(MicroSD_writeHandle, xHighPriorityTaskWoken);
 		break;
 

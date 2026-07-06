@@ -274,6 +274,18 @@ void verifyRTCTime()
 	writeFormatData(&huart1, "Current Time (IST): [%s] \r\n", currTime);
 }
 
+void getCurrentTime(const char *pCurtime, const char *pCurDate)
+{
+	RTC_TimeTypeDef gTime;
+	RTC_DateTypeDef gDate;
+
+	HAL_RTC_GetTime(&hrtc, &gTime, RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&hrtc, &gDate, RTC_FORMAT_BIN);
+
+	sprintf(pCurtime, "%02d:%02d:%02d", gTime.Hours, gTime.Minutes,
+			gTime.Seconds);
+}
+
 void EpochToRtcTime(uint32_t uinxTime_IST, RTC_TimeTypeDef *sTime)
 {
     uint32_t secondsOfDay = uinxTime_IST % 86400;

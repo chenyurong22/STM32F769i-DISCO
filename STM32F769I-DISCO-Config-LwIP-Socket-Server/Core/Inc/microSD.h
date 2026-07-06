@@ -46,8 +46,12 @@ FRESULT SDMMC2_Unmount(FIL *pFIL);
 
 FRESULT SDMMC2_ReadFile(const char *fname, uint8_t bType, uint8_t *aBuffer,
 		size_t *wByeCount);
-FRESULT SDMMC2_WriteFile(const char *fname, entry_t *dataEntry,
+FRESULT SDMMC2_WriteFileBin(const char *fname, entry_t *dataEntry,
 		size_t *wByeCount);
+
+FRESULT SDMMC2_WriteFileText(const char *fname, const char *data, size_t dataLen,
+		size_t *wByeCount);
+
 FSIZE_t fileSize(const char *pFileName);
 FRESULT SDMMCDelete(const char *pFilename);
 

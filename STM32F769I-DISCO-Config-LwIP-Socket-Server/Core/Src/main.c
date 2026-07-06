@@ -171,7 +171,6 @@ int main(void)
 
   HAL_UART_Receive_IT(&huart1, &rxData, 1);
 
-
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -192,7 +191,7 @@ int main(void)
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityLow, 0, 1024);
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityLow, 0, 512);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -203,53 +202,66 @@ int main(void)
 			&mountSDMMCTaskHandle);
 #endif
 
+#if 1
 	/* creation of StartLwIPLinkHandle task */
-	xTaskCreate(StartLwIPLinkHandle, "LwIPLinkHandle", 512, NULL, 3,
+	status = xTaskCreate(StartLwIPLinkHandle, "LwIPLinkHandle", 1024, NULL, 3,
 			&LwIPLinkHandle);
+	ASSERT_TASK(status, mountSDMMCTaskHandle);
+#endif
 
 #if 0
 	/* creation of StartLwIPClientHandle */
-	xTaskCreate(StartLwIPClientHandle, "LwIPClientHandle", 1048, NULL, 6,
+	status = xTaskCreate(StartLwIPClientHandle, "LwIPClientHandle", 1048, NULL, 6,
 			&LwIPClientHandle);
+	ASSERT_TASK(status, LwIPClientHandle);
 #endif
 
 	/* creation of StartLwIPSntpHandle */
-	xTaskCreate(StartSNTP_LinkHandle, "SNTP_LinkHandle", 1048, NULL, 4,
+	status = xTaskCreate(StartSNTP_LinkHandle, "SNTP_LinkHandle", 512, NULL, 4,
 			&SNTP_LinkHandle);
+	ASSERT_TASK(status, SNTP_LinkHandle);
 
 	/* creation of StartUART_NtpTimeReceive */
-	xTaskCreate(StartUART_NtpTimeReceive, "UART_NtpTimeReceiveHandle", 512, NULL, 4,
+	status = xTaskCreate(StartUART_NtpTimeReceive, "UART_NtpTimeReceiveHandle", 512, NULL, 4,
 			&UART_NtpTimeReceiveHandle);
+	ASSERT_TASK(status, UART_NtpTimeReceiveHandle);
 
 	/* creation of StartUART_NtpTimeSet */
 	status = xTaskCreate(StartUART_NtpTimeSet, "UART_NtpTimeSetHandle", 512, NULL, 4,
 			&UART_NtpTimeSetHandle);
+	ASSERT_TASK(status, UART_NtpTimeSetHandle);
 
 	/* creation of StartDisplay_DeviceTime */
 	status = xTaskCreate(StartDisplay_DeviceTime, "Display_DeviceTimeHandle", 512, NULL, 4,
 			&Display_DeviceTimeHandle);
+	ASSERT_TASK(status, MicroSD_writeHandle);
 
 	/* creation of StartReset_Device */
 	status = xTaskCreate(StartReset_Device, "Reset_DeviceHandle", 512, NULL, 4,
 			&Reset_DeviceHandle);
+	ASSERT_TASK(status, Reset_DeviceHandle);
 
 	/* MicroSD card tasks */
 
 	/* creation of StartMicroSD_mount */
 	status = xTaskCreate(StartMicroSD_mount, "MicroSD_mountHandle", 512, NULL, 4,
 			&MicroSD_mountHandle);
+	ASSERT_TASK(status, MicroSD_mountHandle);
 
 	/* creation of StartMicroSD_unmount */
 	status = xTaskCreate(StartMicroSD_unmount, "MicroSD_unmountHandle", 512, NULL, 4,
 			&MicroSD_unmountHandle);
+	ASSERT_TASK(status, MicroSD_unmountHandle);
 
 	/* creation of StartMicroSD_read */
 	status = xTaskCreate(StartMicroSD_read, "MicroSD_readHandle", 512, NULL, 4,
 			&MicroSD_readHandle);
+	ASSERT_TASK(status, MicroSD_readHandle);
 
 	/* creation of StartMicroSD_read */
 	status = xTaskCreate(StartMicroSD_write, "MicroSD_writeHandle", 512, NULL, 4,
 			&MicroSD_writeHandle);
+	ASSERT_TASK(status, MicroSD_writeHandle);
 
 	/* USER CODE END RTOS_THREADS */
 
