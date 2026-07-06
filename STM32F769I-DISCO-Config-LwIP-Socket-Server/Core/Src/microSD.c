@@ -82,7 +82,7 @@ void readSector0()
 
 }
 
-FRESULT SDMMC2_mount(FIL pFile)
+FRESULT SDMMC2_mount()
 {
 	FRESULT res;
 	res = f_mount(&SDFatFS, "0:", 1);
@@ -131,12 +131,12 @@ FRESULT SDMMC2_ReadFile(const char *fname, uint8_t bType, uint8_t *aBuffer,
 		writetoSerial(&huart1, "Error reading from file !\r\n");
 		return status;
 	}
-
 	*wByeCount = bytesRead;
 
 	return status;
 
 }
+
 
 FRESULT SDMMC2_WriteFile(const char *fname, entry_t *dataEntry,
 		size_t *wByeCount)
@@ -144,15 +144,21 @@ FRESULT SDMMC2_WriteFile(const char *fname, entry_t *dataEntry,
 
 	FIL fp;
 	FRESULT status;
+	static bool fileOped = false;
 	UINT bytesWritten = 0;
 	char writeBuffer[100];
+	DWORD size = 0;
 
-	status = f_open(&fp, fname, FA_WRITE | FA_OPEN_ALWAYS);
-
-	if (status != FR_OK)
+	if (fileOped == false)
 	{
-		writetoSerial(&huart1, "Error READING/CREATING file !\r\n");
-		return FR_DISK_ERR;
+		status = f_open(&fp, fname, FA_WRITE | FA_OPEN_ALWAYS);
+		if (status != FR_OK)
+		{
+			writetoSerial(&huart1, "Error READING/CREATING file !\r\n");
+			return FR_DISK_ERR;
+		}
+
+		fileOped = true;
 	}
 
 	/* Moving to the end of the file for append mode */
@@ -186,12 +192,14 @@ FRESULT SDMMC2_WriteFile(const char *fname, entry_t *dataEntry,
 		return FR_DISK_ERR;
 	}
 
-	/* Ensure Data is flushed into SDMMC */
+	/* Ensure Data is flushed into SDMMC and return file size */
+	size = f_size(&fp);
+
 	f_sync(&fp);
 	f_close(&fp);
 
 	/* Return updated size */
-	*wByeCount = f_size(&fp);
+	*wByeCount = size;
 
 	return status;
 }

@@ -62,8 +62,15 @@ TaskHandle_t LwIPLinkHandle;
 TaskHandle_t SNTP_LinkHandle;
 TaskHandle_t UARTLinkHandle;
 TaskHandle_t Reset_DeviceHandle;
-
 TaskHandle_t LwIPClientHandle;
+
+/* MicroSD card task handles */
+TaskHandle_t MicroSD_mountHandle;
+TaskHandle_t MicroSD_unmountHandle;
+TaskHandle_t MicroSD_readHandle;
+TaskHandle_t MicroSD_writeHandle;
+
+
 
 volatile uint8_t rxData;
 volatile uint8_t rxBuffer[8];
@@ -164,6 +171,7 @@ int main(void)
 
   HAL_UART_Receive_IT(&huart1, &rxData, 1);
 
+
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -189,9 +197,11 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
 
+#if 0
 	/* creation of mountSDMMCTask */
-//	xTaskCreate(StartmountSDMMCTask, "mountSDMMCTask", 1000, NULL, 1,
-//			&mountSDMMCTaskHandle);
+	xTaskCreate(StartmountSDMMCTask, "mountSDMMCTask", 512, NULL, 1,
+			&mountSDMMCTaskHandle);
+#endif
 
 	/* creation of StartLwIPLinkHandle task */
 	xTaskCreate(StartLwIPLinkHandle, "LwIPLinkHandle", 512, NULL, 3,
@@ -214,19 +224,34 @@ int main(void)
 	/* creation of StartUART_NtpTimeSet */
 	status = xTaskCreate(StartUART_NtpTimeSet, "UART_NtpTimeSetHandle", 512, NULL, 4,
 			&UART_NtpTimeSetHandle);
-#if 1
+
 	/* creation of StartDisplay_DeviceTime */
 	status = xTaskCreate(StartDisplay_DeviceTime, "Display_DeviceTimeHandle", 512, NULL, 4,
 			&Display_DeviceTimeHandle);
-#endif
 
-#if 1
 	/* creation of StartReset_Device */
 	status = xTaskCreate(StartReset_Device, "Reset_DeviceHandle", 512, NULL, 4,
 			&Reset_DeviceHandle);
-#endif
 
-  /* USER CODE END RTOS_THREADS */
+	/* MicroSD card tasks */
+
+	/* creation of StartMicroSD_mount */
+	status = xTaskCreate(StartMicroSD_mount, "MicroSD_mountHandle", 512, NULL, 4,
+			&MicroSD_mountHandle);
+
+	/* creation of StartMicroSD_unmount */
+	status = xTaskCreate(StartMicroSD_unmount, "MicroSD_unmountHandle", 512, NULL, 4,
+			&MicroSD_unmountHandle);
+
+	/* creation of StartMicroSD_read */
+	status = xTaskCreate(StartMicroSD_read, "MicroSD_readHandle", 512, NULL, 4,
+			&MicroSD_readHandle);
+
+	/* creation of StartMicroSD_read */
+	status = xTaskCreate(StartMicroSD_write, "MicroSD_writeHandle", 512, NULL, 4,
+			&MicroSD_writeHandle);
+
+	/* USER CODE END RTOS_THREADS */
 
   /* Start scheduler */
   osKernelStart();

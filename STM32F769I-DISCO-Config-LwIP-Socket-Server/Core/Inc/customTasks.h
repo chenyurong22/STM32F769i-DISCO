@@ -35,11 +35,16 @@ void StartDisplay_DeviceTime(void *argument);
 void StartReset_Device(void *argument);
 
 
+/* MicroCD task declaration */
+void StartMicroSD_mount(void *argument);
+void StartMicroSD_unmount(void *argument);
+void StartMicroSD_read(void *argument);
+void StartMicroSD_write(void *argument);
+
+
 /* External Task Handler declaration */
 extern TaskHandle_t UART_NtpTimeReceiveHandle;
 extern TaskHandle_t UART_NtpTimeSetHandle;
 extern TaskHandle_t Display_DeviceTimeHandle;
-
-
 
 #endif /* INC_CUSTOMTASKS_H_ */

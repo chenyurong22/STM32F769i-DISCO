@@ -28,19 +28,21 @@ void StartmountSDMMCTask(void *argument)
 
 	for (;;)
 	{
-		writeFormatData(&huart1, "Running [%s] \r\n", __func__);
 		if (SDMMC2_mount() == FR_OK)
 		{
-			writetoSerial(&huart1, "SDMMC card mount Succeed ! \r\n");
 			loopCount++;
 
-			if (loopCount > 10)
+			if (loopCount == 5)
 			{
-				writeFormatData(&huart1, "Deleting [%s] task ... \r\n",
-						__func__);
+				writetoSerial(&huart1, "SD card mount Successful \r\n");
 				vTaskDelete(NULL);
 			}
 		}
+		else
+		{
+			writetoSerial(&huart1, "Mount Failed ! \r\n");
+		}
+
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
 }
@@ -435,6 +437,88 @@ void StartReset_Device(void *argument)
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
 	/* USER CODE END StartDisplay_DeviceTime */
+}
+
+
+/* USER CODE BEGIN StartMicroSD_mount */
+/**
+ * @brief Function implementing the StartMicroSD_mount thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END StartMicroSD_mount */
+void StartMicroSD_mount(void *argument)
+{
+
+	for (;;)
+	{
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* WAIT for the notification ✍. Holds*/
+
+		if (SDMMC2_mount() == FR_OK)
+		{
+			writetoSerial(&huart1, "SD card mount Successful \r\n");
+		}
+		else
+		{
+			writetoSerial(&huart1, "Mount Failed ! \r\n");
+		}
+
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}
+}
+
+/* USER CODE BEGIN StartMicroSD_unmount */
+/**
+ * @brief Function implementing the StartMicroSD_unmount thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END StartMicroSD_unmount */
+void StartMicroSD_unmount(void *argument)
+{
+	for(;;)
+	{
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* WAIT for the notification ✍. Holds*/
+		writeFormatData(&huart1, "[%s] \r\n", __func__);
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}
+
+}
+
+
+/* USER CODE BEGIN StartMicroSD_read */
+/**
+ * @brief Function implementing the StartMicroSD_read thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END StartMicroSD_read */
+void StartMicroSD_read(void *argument)
+{
+	for(;;)
+	{
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* WAIT for the notification ✍. Holds*/
+		writeFormatData(&huart1, "[%s] \r\n", __func__);
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}
+}
+
+/* USER CODE BEGIN StartMicroSD_write */
+/**
+ * @brief Function implementing the StartMicroSD_write thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END StartMicroSD_write */
+
+void StartMicroSD_write(void *argument)
+{
+	for(;;)
+	{
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* WAIT for the notification ✍. Holds*/
+		writeFormatData(&huart1, "[%s] \r\n", __func__);
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}
 }
 
 
