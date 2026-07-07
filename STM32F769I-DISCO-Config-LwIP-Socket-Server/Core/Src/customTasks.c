@@ -408,7 +408,7 @@ void StartDisplay_DeviceTime(void *argument)
 	for (;;)
 	{
 		/* Verify RTC time has been Set */
-		//verifyRTCTime();
+		verifyRTCTime();
 
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
@@ -522,8 +522,6 @@ void StartMicroSD_read(void *argument)
  * @retval None
  */
 /* USER CODE END StartMicroSD_write */
-
-
 
 void StartMicroSD_write(void *argument)
 {
