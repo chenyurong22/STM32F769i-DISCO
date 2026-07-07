@@ -82,6 +82,10 @@ void process_UART_Receive(const uint8_t *rxBuffer, BaseType_t *xHighPriorityTask
 		vTaskNotifyGiveFromISR(MicroSD_writeHandle, xHighPriorityTaskWoken);
 		break;
 
+	case 0x05:
+		vTaskNotifyGiveFromISR(MicroSD_FileDelHandle, xHighPriorityTaskWoken);
+		break;
+
 	default:
 		writetoSerial(&huart1, "Default ..\r\n");
 		break;

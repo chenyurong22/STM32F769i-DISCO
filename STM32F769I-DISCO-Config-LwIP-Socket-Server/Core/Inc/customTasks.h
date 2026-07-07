@@ -40,6 +40,7 @@ void StartMicroSD_mount(void *argument);
 void StartMicroSD_unmount(void *argument);
 void StartMicroSD_read(void *argument);
 void StartMicroSD_write(void *argument);
+void StartMicroSD_FileDel(void *atgument);
 
 
 /* External Task Handler declaration */

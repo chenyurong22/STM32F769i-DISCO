@@ -97,9 +97,6 @@ FRESULT SDMMC2_Unmount(FIL *pFIL)
 {
 	FRESULT res;
 
-	writetoSerial(&huart1, "Deleting the file .. \r\n");
-	SDMMCDelete(pFileName);
-
 	res = f_mount(NULL, "0:", 1);
 
 	if (res != FR_OK)
@@ -141,9 +138,17 @@ FRESULT SDMMCDelete(const char *pFilename)
 	}
 
 	result = f_unlink(pFilename);
+
+	if (result == FR_NO_FILE)
+	{
+		writetoSerial(&huart1, "File Does not exists ❌ \r\n");
+		return result;
+	}
+
 	if (result != FR_OK)
 	{
 		writetoSerial(&huart1, "Error deleting file !\r\n");
+		return result;
 	}
 
 	return result;
@@ -152,7 +157,6 @@ FRESULT SDMMCDelete(const char *pFilename)
 FRESULT SDMMC2_WriteFileBin(const char *fname, entry_t *dataEntry,
 		size_t *wByeCount)
 {
-
 	FIL fp;
 	FRESULT status;
 	UINT bytesWritten = 0;
@@ -175,7 +179,6 @@ FRESULT SDMMC2_WriteFileBin(const char *fname, entry_t *dataEntry,
 	}
 
 	/* Writing to File */
-
 	snprintf(writeBuffer, sizeof(writeBuffer), "[Index: %d] [%s] \r\n", f_size(&fp)/64,
 			dataEntry->data);
 

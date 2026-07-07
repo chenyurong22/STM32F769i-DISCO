@@ -69,6 +69,7 @@ TaskHandle_t MicroSD_mountHandle;
 TaskHandle_t MicroSD_unmountHandle;
 TaskHandle_t MicroSD_readHandle;
 TaskHandle_t MicroSD_writeHandle;
+TaskHandle_t MicroSD_FileDelHandle;
 
 
 
@@ -262,6 +263,14 @@ int main(void)
 	status = xTaskCreate(StartMicroSD_write, "MicroSD_writeHandle", 512, NULL, 4,
 			&MicroSD_writeHandle);
 	ASSERT_TASK(status, MicroSD_writeHandle);
+
+
+	/* creation of StartMicroSD_FileDel */
+	status = xTaskCreate(StartMicroSD_FileDel, "MicroSD_FileDelHandle", 512, NULL, 4,
+			&MicroSD_FileDelHandle);
+	ASSERT_TASK(status, MicroSD_FileDelHandle);
+
+
 
 	/* USER CODE END RTOS_THREADS */
 

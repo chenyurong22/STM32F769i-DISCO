@@ -481,14 +481,11 @@ void StartMicroSD_unmount(void *argument)
 	for(;;)
 	{
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* WAIT for the notification ✍. Holds*/
-		writeFormatData(&huart1, "[%s] \r\n", __func__);
-
 
 		SDMMC2_Unmount(&fp);
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
 }
-
 
 /* USER CODE BEGIN StartMicroSD_read */
 /**
@@ -530,6 +527,7 @@ void StartMicroSD_read(void *argument)
 
 void StartMicroSD_write(void *argument)
 {
+
 	const char aCurTime[50];
 	const char aCurDate[50];
 
@@ -554,3 +552,22 @@ void StartMicroSD_write(void *argument)
 	}
 }
 
+
+void StartMicroSD_FileDel(void *argument)
+{
+	const char *msg = "ফাইলটি মুছে ফেলা হয়েছে।\r\n";
+
+	for(;;)
+	{
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* WAIT for the notification ✍. Holds*/
+
+		writetoSerial(&huart1, "Deleting log file ..✍ \r\n");
+		if(SDMMCDelete(pFileName) == FR_OK)
+		{
+			//writetoSerial(&huart1, "Log file deleted  \r\n");
+			writetoSerial(&huart1, msg);
+		}
+
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}
+}

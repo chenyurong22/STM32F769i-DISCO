@@ -18,6 +18,7 @@ extern TaskHandle_t MicroSD_mountHandle;
 extern TaskHandle_t MicroSD_unmountHandle;
 extern TaskHandle_t MicroSD_readHandle;
 extern TaskHandle_t MicroSD_writeHandle;
+extern TaskHandle_t MicroSD_FileDelHandle;
 
 
 /* Function Prototypes */
