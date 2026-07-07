@@ -483,6 +483,7 @@ void StartMicroSD_unmount(void *argument)
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* WAIT for the notification ✍. Holds*/
 		writeFormatData(&huart1, "[%s] \r\n", __func__);
 
+
 		SDMMC2_Unmount(&fp);
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
@@ -496,12 +497,23 @@ void StartMicroSD_unmount(void *argument)
  * @retval None
  */
 /* USER CODE END StartMicroSD_read */
+
+const char *pFileName = "TimeLog.txt";
 void StartMicroSD_read(void *argument)
 {
+	uint8_t aFileRead[28];
+	size_t textLen = 27;
+	size_t bByeteCount = 0;
+
 	for(;;)
 	{
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* WAIT for the notification ✍. Holds*/
-		writeFormatData(&huart1, "[%s] \r\n", __func__);
+
+		writetoSerial(&huart1, "Reading Log file ..\r\n");
+		SDMMC2_ReadFile(pFileName, aFileRead, textLen, &bByeteCount);
+
+		writeFormatData(&huart1, "Total Bytes: %d \r\n", bByeteCount);
+
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
 }
@@ -515,7 +527,7 @@ void StartMicroSD_read(void *argument)
 /* USER CODE END StartMicroSD_write */
 
 
-const char *pFileName = "TimeLog.txt";
+
 void StartMicroSD_write(void *argument)
 {
 	const char aCurTime[50];
@@ -535,7 +547,7 @@ void StartMicroSD_write(void *argument)
 
 		SDMMC2_WriteFileText(pFileName, aLogTime, dataLen, &wByteWritten);
 
-		writeFormatData(&huart1, "Instant Time: [%s] Byte written: [%d] Size: [%d] \r\n",
+		writeFormatData(&huart1, "Recorded Time:[%s]  Byte written: [%d] Size: [%d] \r\n",
 				aCurTime, wByteWritten, fileSize(pFileName));
 
 		vTaskDelay(pdMS_TO_TICKS(500));

@@ -91,20 +91,14 @@ FRESULT SDMMC2_mount()
 	return res;
 }
 
+extern const char *pFileName;
+
 FRESULT SDMMC2_Unmount(FIL *pFIL)
 {
 	FRESULT res;
 
-	if (pFIL != NULL)
-	{
-		res = f_close(pFIL);
-
-		if(res != FR_OK)
-		{
-			writetoSerial(&huart1, "File close Failed \r\n");
-			return res;
-		}
-	}
+	writetoSerial(&huart1, "Deleting the file .. \r\n");
+	SDMMCDelete(pFileName);
 
 	res = f_mount(NULL, "0:", 1);
 
@@ -119,38 +113,6 @@ FRESULT SDMMC2_Unmount(FIL *pFIL)
 
 	return res;
 }
-
-FRESULT SDMMC2_ReadFile(const char *fname, uint8_t bType, uint8_t *aBuffer,
-		size_t *wByeCount)
-{
-	//FIL fp;
-	FRESULT status;
-	UINT bytesRead;
-
-	status = f_open(&fp, fname, FA_READ);
-
-	if (status != FR_OK)
-	{
-		writetoSerial(&huart1, "Error reading binary file !\r\n");
-		return status;
-	}
-
-	/* Reading from File */
-	status = f_read(&fp, aBuffer, sizeof(buffer), &bytesRead);
-	f_sync(&fp);
-	f_close(&fp);
-
-	if (status != FR_OK)
-	{
-		writetoSerial(&huart1, "Error reading from file !\r\n");
-		return status;
-	}
-	*wByeCount = bytesRead;
-
-	return status;
-
-}
-
 
 FSIZE_t fileSize(const char *pFileName)
 {
@@ -171,13 +133,17 @@ FSIZE_t fileSize(const char *pFileName)
 
 FRESULT SDMMCDelete(const char *pFilename)
 {
-	FRESULT result = 0;
+	FRESULT result;
+
+	if(pFilename == NULL)
+	{
+		return FR_INVALID_NAME;
+	}
 
 	result = f_unlink(pFilename);
 	if (result != FR_OK)
 	{
 		writetoSerial(&huart1, "Error deleting file !\r\n");
-		return FR_DISK_ERR;
 	}
 
 	return result;
@@ -236,7 +202,6 @@ FRESULT SDMMC2_WriteFileBin(const char *fname, entry_t *dataEntry,
 FRESULT SDMMC2_WriteFileText(const char *fname, const char *data, size_t dataLen,
 		size_t *wByeCount)
 {
-
 	FIL fp;
 	FRESULT status;
 	UINT bytesWritten = 0;
@@ -273,6 +238,46 @@ FRESULT SDMMC2_WriteFileText(const char *fname, const char *data, size_t dataLen
 	/* Returning number of byte written */
 	*wByeCount = bytesWritten;
 
+	return status;
+}
+
+FRESULT SDMMC2_ReadFile(const char *fname, uint8_t *aBuffer, size_t buffLen,
+		size_t *wByeCount)
+{
+	FIL fp;
+	FRESULT status;
+	UINT bytesRead;
+	FSIZE_t fileSize = 0;
+	FSIZE_t blockSize = 27;
+
+	size_t offset = 0;
+	status = f_open(&fp, fname, FA_READ);
+
+	if (status == FR_OK)
+	{
+		fileSize = f_size(&fp);
+
+		while(offset != fileSize)
+		{
+
+		/* Reading from File */
+		status = f_read(&fp, aBuffer, blockSize, &bytesRead); /* Read Entire file */
+		aBuffer[bytesRead] = '\0';
+
+		writeFormatData(&huart1, "%s \r", aBuffer);
+
+		offset += bytesRead;
+		}
+
+		if ((status == FR_OK) && (offset == fileSize))
+		{
+			f_sync(&fp);
+			f_close(&fp);
+			writetoSerial(&huart1, "Log file read Complete !\r\n");
+		}
+	}
+
+	*wByeCount = offset;
 	return status;
 }
 
