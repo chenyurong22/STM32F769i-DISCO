@@ -101,11 +101,11 @@ FRESULT SDMMC2_Unmount(FIL *pFIL)
 
 	if (res != FR_OK)
 	{
-		writetoSerial(&huart1, "SD Card Un-mounting failed \r\n");
+		writetoSerial(&huart1, "[STATUS] : SD Card Un-mounting failed \r\n");
 	}
 	else
 	{
-		writetoSerial(&huart1, "SD Card Un-mounting succeed \r\n");
+		writetoSerial(&huart1, "[STATUS] : SD Card Un-mounting succeed \r\n");
 	}
 
 	return res;
@@ -141,13 +141,13 @@ FRESULT SDMMCDelete(const char *pFilename)
 
 	if (result == FR_NO_FILE)
 	{
-		writetoSerial(&huart1, "File Does not exists ❌ \r\n");
+		writetoSerial(&huart1, "[STATUS] : File Does not exists \r\n");
 		return result;
 	}
 
 	if (result != FR_OK)
 	{
-		writetoSerial(&huart1, "Error deleting file !\r\n");
+		writetoSerial(&huart1, "[STATUS] : Error deleting file\r\n");
 		return result;
 	}
 
@@ -165,14 +165,14 @@ FRESULT SDMMC2_WriteFileBin(const char *fname, entry_t *dataEntry,
 
 	if (status != FR_OK)
 	{
-		writetoSerial(&huart1, "Error WRITING/CREATING binary file !\r\n");
+		writetoSerial(&huart1, "[STATUS] : Error WRITING/CREATING binary file !\r\n");
 		return FR_DISK_ERR;
 	}
 
 	/* Moving to the end of the file for append mode */
 	if (f_lseek(&fp, f_size(&fp)) != FR_OK)
 	{
-		writetoSerial(&huart1, "Error seek file end! \r\n");
+		writetoSerial(&huart1, "[STATUS] : Error seek file end! \r\n");
 		return FR_INT_ERR;
 	}
 
@@ -181,7 +181,7 @@ FRESULT SDMMC2_WriteFileBin(const char *fname, entry_t *dataEntry,
 
 	if (status != FR_OK || bytesWritten == 0)
 	{
-		writetoSerial(&huart1, "Error writing to binary file !\r\n");
+		writetoSerial(&huart1, "[STATUS] : Error writing to binary file !\r\n");
 		f_close(&fp);
 		return FR_DISK_ERR;
 	}
@@ -208,7 +208,7 @@ FRESULT SDMMC2_WriteFileText(const char *fname, const char *data, size_t dataLen
 
 	if (status != FR_OK)
 	{
-		writetoSerial(&huart1, "Error WRITING/CREATING text file !\r\n");
+		writetoSerial(&huart1, "[STATUS] : Error WRITING/CREATING text file !\r\n");
 		return FR_DISK_ERR;
 	}
 
@@ -224,7 +224,7 @@ FRESULT SDMMC2_WriteFileText(const char *fname, const char *data, size_t dataLen
 
 	if (status != FR_OK || bytesWritten == 0)
 	{
-		writetoSerial(&huart1, "Error writing to file !\r\n");
+		writetoSerial(&huart1, "[STATUS] : Error writing to file !\r\n");
 		f_close(&fp);
 		return FR_DISK_ERR;
 	}
@@ -270,7 +270,7 @@ FRESULT SDMMC2_ReadFile(const char *fname, uint8_t *aBuffer, size_t buffLen,
 		{
 			f_sync(&fp);
 			f_close(&fp);
-			writetoSerial(&huart1, "Log file read Complete !\r\n");
+			writetoSerial(&huart1, "[STATUS] : Log file read Complete !\r\n");
 		}
 	}
 
@@ -292,7 +292,7 @@ FRESULT SDMMC2_ReadFileBin(const char *fname, entry_t *dataEntry,
 
 	if(status == FR_NO_FILE)
 	{
-		writetoSerial(&huart1, "File Does not exists ❌ \r\n");
+		writetoSerial(&huart1, "[STATUS] : File Does not exists \r\n");
 		*wByeCount = 0;
 		return status;
 	}
@@ -313,11 +313,13 @@ FRESULT SDMMC2_ReadFileBin(const char *fname, entry_t *dataEntry,
 			offset += sizeof(entry_t);
 		}
 
+		writetoSerial(&huart1, "\r\n");
+
 		if ((status == FR_OK) && (offset == fileSize))
 		{
 			f_sync(&fp);
 			f_close(&fp);
-			writetoSerial(&huart1, "Binary Log file read Complete !\r\n");
+			writetoSerial(&huart1, "[STATUS] : Binary Log file read Complete\r\n");
 		}
 	}
 
@@ -339,14 +341,14 @@ FRESULT SDMMC2_GetLastIndexBin(const char *fname, size_t *curIndex)
 	status = f_open(&fp, fname, FA_READ);
 	if(status == FR_NO_FILE)
 	{
-		writeFormatData(&huart1, "File %s does not exists \r\n", fname);
+		writeFormatData(&huart1, "[STATUS] : File %s does not exists \r\n", fname);
 		*curIndex = 0;
 		return status;
 	}
 
 	if(status != FR_OK)
 	{
-		writeFormatData(&huart1, "Unable to open file %s in %s() \r\n", fname, __func__);
+		writeFormatData(&huart1, "[STATUS] : Unable to open file %s in %s() \r\n", fname, __func__);
 		f_close(&fp);
 		return status;
 	}

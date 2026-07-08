@@ -454,11 +454,11 @@ void StartMicroSD_mount(void *argument)
 
 		if (SDMMC2_mount() == FR_OK)
 		{
-			writetoSerial(&huart1, "SD card mount Successful \r\n");
+			writetoSerial(&huart1, "[STATUS] : SD card mount Successful \r\n");
 		}
 		else
 		{
-			writetoSerial(&huart1, "Mount Failed ! \r\n");
+			writetoSerial(&huart1, "[STATUS] : Mount Failed ! \r\n");
 		}
 
 		vTaskDelay(pdMS_TO_TICKS(500));
@@ -528,12 +528,12 @@ void StartMicroSD_read(void *argument)
 
 #elif defined LOG_FORMAT == LOG_FORMAT_BIN
 
-		writetoSerial(&huart1, "Reading binary Log file ..\r\n");
+		writetoSerial(&huart1, "[STATUS] : Reading binary Log file ..\r\n");
 		status = SDMMC2_ReadFileBin(pFileNameBin, &dataEntry, nEntries, &bByeteCount);
 
 		if(status == FR_OK)
 		{
-			writeFormatData(&huart1, "Total Bytes: %d \r\n", bByeteCount);
+			writeFormatData(&huart1, "[STATUS] : Total Bytes: %d \r\n", bByeteCount);
 		}
 
 #endif
@@ -581,14 +581,16 @@ void StartMicroSD_write(void *argument)
 		logEntry.DiskOp = WRITE_LOG;
 
 		SDMMC2_WriteFileBin(pFileNameBin, &logEntry, &wByteWritten);
-		writeFormatData(&huart1, "Data written to [%s] \r\n", pFileNameBin);
+		writeFormatData(&huart1, "[STATUS] : Data written to [%s] \r\n", pFileNameBin);
 
 #elif LOG_FORMAT == LOG_FORMAT_ASCII
 
 		dataLen = snprintf(aLogTime, sizeof(aLogTime), "Recorded Time:[%s] \r\n", aCurTime);
 		SDMMC2_WriteFileText(pFileName, aLogTime, dataLen, &wByteWritten);
 		writeFormatData(&huart1, "Recorded Time:[%s]  Byte written: [%d] Size: [%d] \r\n",
-				aCurTime, wByteWritten, fileSize(pFileName));
+				aCurTime,
+				wByteWritten,
+				fileSize(pFileName));
 #else
 #error "Invalid LOG FORMAT"
 #endif
@@ -611,10 +613,10 @@ void StartMicroSD_FileDel(void *argument)
 	{
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* WAIT for the notification ✍. Holds*/
 
-		writetoSerial(&huart1, "Deleting log file ..✍ \r\n");
+		writetoSerial(&huart1, "[STATUS] : Deleting log file ..✍ \r\n");
 		if (SDMMCDelete(pFileName) == FR_OK)
 		{
-			writeFormatData(&huart1, "Log File %s deleted \r\n", pFileName);
+			writeFormatData(&huart1, "[STATUS] : Log File %s deleted \r\n", pFileName);
 		}
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
