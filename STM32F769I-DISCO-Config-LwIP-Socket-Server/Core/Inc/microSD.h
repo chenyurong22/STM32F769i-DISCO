@@ -33,7 +33,7 @@ typedef enum
 typedef struct entry
 {
 	char data[50];
-	uint8_t index;
+	size_t index;
 	DiskOperation_t DiskOp;
 } entry_t;
 
@@ -57,6 +57,8 @@ FRESULT SDMMC2_ReadFile(const char *fname, uint8_t *aBuffer, size_t buffLen,
 
 FRESULT SDMMC2_ReadFileBin(const char *fname, entry_t *dataEntry, size_t nEntries,
 		size_t *wByeCount);
+
+FRESULT SDMMC2_GetLastIndexBin(const char *fname, size_t *curIndex);
 
 FSIZE_t fileSize(const char *pFileName);
 FRESULT SDMMCDelete(const char *pFilename);

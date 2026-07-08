@@ -11,7 +11,7 @@
 #include "custom.h"
 #include <stdio.h>
 
-extern FATFS SDFatFS; /* Make it extern  */
+extern FATFS SDFatFS; /* Make it external variable  */
 
 extern SD_HandleTypeDef hsd2;
 extern UART_HandleTypeDef huart1;
@@ -165,7 +165,7 @@ FRESULT SDMMC2_WriteFileBin(const char *fname, entry_t *dataEntry,
 
 	if (status != FR_OK)
 	{
-		writetoSerial(&huart1, "Error WRITING/CREATING file !\r\n");
+		writetoSerial(&huart1, "Error WRITING/CREATING binary file !\r\n");
 		return FR_DISK_ERR;
 	}
 
@@ -208,7 +208,7 @@ FRESULT SDMMC2_WriteFileText(const char *fname, const char *data, size_t dataLen
 
 	if (status != FR_OK)
 	{
-		writetoSerial(&huart1, "Error WRITING/CREATING file !\r\n");
+		writetoSerial(&huart1, "Error WRITING/CREATING text file !\r\n");
 		return FR_DISK_ERR;
 	}
 
@@ -229,7 +229,7 @@ FRESULT SDMMC2_WriteFileText(const char *fname, const char *data, size_t dataLen
 		return FR_DISK_ERR;
 	}
 
-	/* Ensure Data is flused into SDMMC */
+	/* Ensure Data is flushed into SDMMC */
 	f_sync(&fp);
 	f_close(&fp);
 
@@ -263,7 +263,6 @@ FRESULT SDMMC2_ReadFile(const char *fname, uint8_t *aBuffer, size_t buffLen,
 		aBuffer[bytesRead] = '\0';
 
 		writeFormatData(&huart1, "%s \r", aBuffer);
-
 		offset += bytesRead;
 		}
 
@@ -280,8 +279,8 @@ FRESULT SDMMC2_ReadFile(const char *fname, uint8_t *aBuffer, size_t buffLen,
 }
 
 /* Reading from Binary File */
-FRESULT SDMMC2_ReadFileBin(const char *fname, entry_t *dataEntry, size_t nEntries,
-		size_t *wByeCount)
+FRESULT SDMMC2_ReadFileBin(const char *fname, entry_t *dataEntry,
+		size_t nEntries, size_t *wByeCount)
 {
 	FIL fp;
 	FRESULT status;
@@ -291,18 +290,27 @@ FRESULT SDMMC2_ReadFileBin(const char *fname, entry_t *dataEntry, size_t nEntrie
 	size_t offset = 0;
 	status = f_open(&fp, fname, FA_READ);
 
+	if(status == FR_NO_FILE)
+	{
+		writetoSerial(&huart1, "File Does not exists ❌ \r\n");
+		*wByeCount = 0;
+		return status;
+	}
+
 	if (status == FR_OK)
 	{
 		fileSize = f_size(&fp);
 
-		while(offset != fileSize)
+		while (offset != fileSize)
 		{
+			/* Reading from File */
+			status = f_read(&fp, dataEntry, sizeof(entry_t), &bytesRead); /* Read Entire file */
+			writeFormatData(&huart1, "Index: %d %s  %d\r",
+					dataEntry->index,
+					dataEntry->data,
+					sizeof(entry_t));
 
-		/* Reading from File */
-		status = f_read(&fp, dataEntry, sizeof(entry_t), &bytesRead); /* Read Entire file */
-		writeFormatData(&huart1, "%s \r", dataEntry->data);
-
-		offset += sizeof(entry_t);
+			offset += sizeof(entry_t);
 		}
 
 		if ((status == FR_OK) && (offset == fileSize))
@@ -315,6 +323,62 @@ FRESULT SDMMC2_ReadFileBin(const char *fname, entry_t *dataEntry, size_t nEntrie
 
 	*wByeCount = offset;
 	return status;
+}
+
+/* Get last Index in File */
+
+FRESULT SDMMC2_GetLastIndexBin(const char *fname, size_t *curIndex)
+{
+	FIL fp;
+	FRESULT status;
+	FSIZE_t fileSize;
+	size_t wByteRead = 0;
+	entry_t dataEntry;
+
+
+	status = f_open(&fp, fname, FA_READ);
+	if(status == FR_NO_FILE)
+	{
+		writeFormatData(&huart1, "File %s does not exists \r\n", fname);
+		*curIndex = 0;
+		return status;
+	}
+
+	if(status != FR_OK)
+	{
+		writeFormatData(&huart1, "Unable to open file %s in %s() \r\n", fname, __func__);
+		f_close(&fp);
+		return status;
+	}
+
+	/* Get File size */
+	fileSize = f_size(&fp);
+
+	if(fileSize < sizeof(entry_t))
+	{
+		f_close(&fp);
+		writetoSerial(&huart1, "Invalid Object \r\n");
+
+		return FR_INVALID_OBJECT;
+	}
+
+	if(fileSize >= sizeof(entry_t))
+	{
+		f_lseek(&fp, fileSize - sizeof(entry_t));
+	}
+
+	status = f_read(&fp, &dataEntry, sizeof(entry_t), &wByteRead);
+
+	if((status != FR_OK) || (wByteRead != sizeof(entry_t)))
+	{
+		f_close(&fp);
+		writetoSerial(&huart1, "FR_INT_ERR \r\n");
+
+		return (status != FR_OK) ? status : FR_INT_ERR;
+	}
+
+	f_close(&fp);
+	*curIndex = dataEntry.index;
 }
 
 

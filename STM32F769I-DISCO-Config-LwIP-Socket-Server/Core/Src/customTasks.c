@@ -408,13 +408,12 @@ void StartDisplay_DeviceTime(void *argument)
 	for (;;)
 	{
 		/* Verify RTC time has been Set */
-		verifyRTCTime();
+		//verifyRTCTime();
 
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
 	/* USER CODE END StartDisplay_DeviceTime */
 }
-
 
 /* USER CODE BEGIN Header_StartReset_Device */
 /**
@@ -477,7 +476,7 @@ void StartMicroSD_mount(void *argument)
 extern FIL fp;
 void StartMicroSD_unmount(void *argument)
 {
-	for(;;)
+	for (;;)
 	{
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* WAIT for the notification ✍. Holds*/
 
@@ -500,33 +499,44 @@ void StartMicroSD_unmount(void *argument)
 
 const char *pFileName = "TimeLog.txt";
 const char *pFileNameBin = "TimeLog.bin";
+
 void StartMicroSD_read(void *argument)
 {
 	uint8_t aFileRead[28];
 	size_t textLen = 27;
 	size_t bByeteCount = 0;
+	FRESULT status;
 
 #if LOG_FORMAT == LOG_FORMAT_BIN
 
+	size_t logIndex = 0;
 	entry_t dataEntry;
 	size_t nEntries = 0;
 #endif
 
-	for(;;)
+	for (;;)
 	{
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* WAIT for the notification ✍. Holds*/
 
+		/* Get last entry from the file */
+		SDMMC2_GetLastIndexBin(pFileNameBin, &logIndex); /* ✅ */
+
 #if defined LOG_FORMAT == LOG_FORMAT_ASCII
+
 		writetoSerial(&huart1, "Reading text Log file ..\r\n");
 		SDMMC2_ReadFile(pFileName, aFileRead, textLen, &bByeteCount);
+
 #elif defined LOG_FORMAT == LOG_FORMAT_BIN
+
 		writetoSerial(&huart1, "Reading binary Log file ..\r\n");
-		SDMMC2_ReadFileBin(pFileNameBin, &dataEntry, nEntries, &bByeteCount);
-#else
+		status = SDMMC2_ReadFileBin(pFileNameBin, &dataEntry, nEntries, &bByeteCount);
+
+		if(status == FR_OK)
+		{
+			writeFormatData(&huart1, "Total Bytes: %d \r\n", bByeteCount);
+		}
 
 #endif
-
-		writeFormatData(&huart1, "Total Bytes: %d \r\n", bByeteCount);
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
 }
@@ -548,25 +558,29 @@ void StartMicroSD_write(void *argument)
 	size_t wByteWritten = 0;
 
 #ifdef LOG_FORMAT_BIN
-	/* Binary Log format */
-	entry_t logEntry = { 0 };
-	static uint8_t logIndex = 0;
+	entry_t logEntry =
+	{ 0 };
+	size_t logIndex = 0;
 	DiskOperation_t DiskOper = NOP;
+
 #endif
 
-	for(;;)
+	for (;;)
 	{
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* WAIT for the notification ✍. Holds*/
 
+		/* Get last log index */
+		SDMMC2_GetLastIndexBin(pFileNameBin, &logIndex); /* ✅ */
+
 		/* Retrieve Current Time */
-		getCurrentTime(aCurTime, aCurDate);
+		getCurrentTime(aCurTime, aCurDate); /*  ✅ */
 
 #if LOG_FORMAT == LOG_FORMAT_BIN
 		strcpy(logEntry.data, aCurTime);
-		logEntry.index = logIndex++;
+		logEntry.index = logIndex + 1;
 		logEntry.DiskOp = WRITE_LOG;
 
-		SDMMC2_WriteFileBin(pFileNameBin,&logEntry, &wByteWritten);
+		SDMMC2_WriteFileBin(pFileNameBin, &logEntry, &wByteWritten);
 		writeFormatData(&huart1, "Data written to [%s] \r\n", pFileNameBin);
 
 #elif LOG_FORMAT == LOG_FORMAT_ASCII
@@ -587,7 +601,7 @@ void StartMicroSD_FileDel(void *argument)
 {
 	const char *msg = "ফাইলটি মুছে ফেলা হয়েছে।\r\n";
 
-	#if LOG_FORMAT == LOG_FORMAT_ASCII
+#if LOG_FORMAT == LOG_FORMAT_ASCII
 	pFileName = "TimeLog.txt";
 #elif LOG_FORMAT == LOG_FORMAT_BIN
 	pFileName = "TimeLog.bin";
