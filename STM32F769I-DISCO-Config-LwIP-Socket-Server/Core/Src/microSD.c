@@ -160,14 +160,12 @@ FRESULT SDMMC2_WriteFileBin(const char *fname, entry_t *dataEntry,
 	FIL fp;
 	FRESULT status;
 	UINT bytesWritten = 0;
-	static uint8_t indx = 0;
-	char writeBuffer[80];
 
 	status = f_open(&fp, fname, FA_WRITE | FA_OPEN_ALWAYS);
 
 	if (status != FR_OK)
 	{
-		writetoSerial(&huart1, "Error reading READING/CREATING file !\r\n");
+		writetoSerial(&huart1, "Error WRITING/CREATING file !\r\n");
 		return FR_DISK_ERR;
 	}
 
@@ -178,20 +176,17 @@ FRESULT SDMMC2_WriteFileBin(const char *fname, entry_t *dataEntry,
 		return FR_INT_ERR;
 	}
 
-	/* Writing to File */
-	snprintf(writeBuffer, sizeof(writeBuffer), "[Index: %d] [%s] \r\n", f_size(&fp)/64,
-			dataEntry->data);
-
-	status = f_write(&fp, writeBuffer, strlen(writeBuffer), &bytesWritten);
+	/* Writing to Binary File */
+	status = f_write(&fp, dataEntry, sizeof(entry_t), &bytesWritten);
 
 	if (status != FR_OK || bytesWritten == 0)
 	{
-		writetoSerial(&huart1, "Error writing to file !\r\n");
+		writetoSerial(&huart1, "Error writing to binary file !\r\n");
 		f_close(&fp);
 		return FR_DISK_ERR;
 	}
 
-	/* Ensure Data is flused into SDMMC */
+	/* Ensure Data is flushed into SDMMC */
 	f_sync(&fp);
 	f_close(&fp);
 
@@ -283,4 +278,44 @@ FRESULT SDMMC2_ReadFile(const char *fname, uint8_t *aBuffer, size_t buffLen,
 	*wByeCount = offset;
 	return status;
 }
+
+/* Reading from Binary File */
+FRESULT SDMMC2_ReadFileBin(const char *fname, entry_t *dataEntry, size_t nEntries,
+		size_t *wByeCount)
+{
+	FIL fp;
+	FRESULT status;
+	UINT bytesRead;
+	FSIZE_t fileSize = 0;
+
+	size_t offset = 0;
+	status = f_open(&fp, fname, FA_READ);
+
+	if (status == FR_OK)
+	{
+		fileSize = f_size(&fp);
+
+		while(offset != fileSize)
+		{
+
+		/* Reading from File */
+		status = f_read(&fp, dataEntry, sizeof(entry_t), &bytesRead); /* Read Entire file */
+		writeFormatData(&huart1, "%s \r", dataEntry->data);
+
+		offset += sizeof(entry_t);
+		}
+
+		if ((status == FR_OK) && (offset == fileSize))
+		{
+			f_sync(&fp);
+			f_close(&fp);
+			writetoSerial(&huart1, "Binary Log file read Complete !\r\n");
+		}
+	}
+
+	*wByeCount = offset;
+	return status;
+}
+
+
 

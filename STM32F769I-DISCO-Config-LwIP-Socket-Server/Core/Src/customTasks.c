@@ -273,13 +273,13 @@ void StartshowSDCardTask(void *argument)
 /* USER CODE BEGIN Header_StartwriteSDCardTask */
 void StartwriteSDCardTask(void *argument)
 {
-	const char *msg = "Data sent to MicroSD card [Startwrite]";
+	const char *msg = "Data sent to MicroSD card\r\n";
 	static uint16_t logCount = 0;
 
 	/* Infinite loop */
 	for (;;)
 	{
-		logEntry.data = msg;
+		strcpy(logEntry.data, msg);
 		logEntry.index = logCount;
 		logEntry.DiskOp = WRITE_LOG;
 
@@ -439,7 +439,6 @@ void StartReset_Device(void *argument)
 	/* USER CODE END StartDisplay_DeviceTime */
 }
 
-
 /* USER CODE BEGIN StartMicroSD_mount */
 /**
  * @brief Function implementing the StartMicroSD_mount thread.
@@ -495,22 +494,39 @@ void StartMicroSD_unmount(void *argument)
  */
 /* USER CODE END StartMicroSD_read */
 
+#define LOG_FORMAT_BIN 1
+#define LOG_FORMAT_ASCII 0
+#define LOG_FORMAT LOG_FORMAT_BIN
+
 const char *pFileName = "TimeLog.txt";
+const char *pFileNameBin = "TimeLog.bin";
 void StartMicroSD_read(void *argument)
 {
 	uint8_t aFileRead[28];
 	size_t textLen = 27;
 	size_t bByeteCount = 0;
 
+#if LOG_FORMAT == LOG_FORMAT_BIN
+
+	entry_t dataEntry;
+	size_t nEntries = 0;
+#endif
+
 	for(;;)
 	{
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* WAIT for the notification ✍. Holds*/
 
-		writetoSerial(&huart1, "Reading Log file ..\r\n");
+#if defined LOG_FORMAT == LOG_FORMAT_ASCII
+		writetoSerial(&huart1, "Reading text Log file ..\r\n");
 		SDMMC2_ReadFile(pFileName, aFileRead, textLen, &bByeteCount);
+#elif defined LOG_FORMAT == LOG_FORMAT_BIN
+		writetoSerial(&huart1, "Reading binary Log file ..\r\n");
+		SDMMC2_ReadFileBin(pFileNameBin, &dataEntry, nEntries, &bByeteCount);
+#else
+
+#endif
 
 		writeFormatData(&huart1, "Total Bytes: %d \r\n", bByeteCount);
-
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
 }
@@ -525,13 +541,18 @@ void StartMicroSD_read(void *argument)
 
 void StartMicroSD_write(void *argument)
 {
-
 	const char aCurTime[50];
 	const char aCurDate[50];
-
 	const char aLogTime[100];
 	size_t dataLen = 0;
 	size_t wByteWritten = 0;
+
+#ifdef LOG_FORMAT_BIN
+	/* Binary Log format */
+	entry_t logEntry = { 0 };
+	static uint8_t logIndex = 0;
+	DiskOperation_t DiskOper = NOP;
+#endif
 
 	for(;;)
 	{
@@ -539,33 +560,48 @@ void StartMicroSD_write(void *argument)
 
 		/* Retrieve Current Time */
 		getCurrentTime(aCurTime, aCurDate);
+
+#if LOG_FORMAT == LOG_FORMAT_BIN
+		strcpy(logEntry.data, aCurTime);
+		logEntry.index = logIndex++;
+		logEntry.DiskOp = WRITE_LOG;
+
+		SDMMC2_WriteFileBin(pFileNameBin,&logEntry, &wByteWritten);
+		writeFormatData(&huart1, "Data written to [%s] \r\n", pFileNameBin);
+
+#elif LOG_FORMAT == LOG_FORMAT_ASCII
+
 		dataLen = snprintf(aLogTime, sizeof(aLogTime), "Recorded Time:[%s] \r\n", aCurTime);
-
 		SDMMC2_WriteFileText(pFileName, aLogTime, dataLen, &wByteWritten);
-
 		writeFormatData(&huart1, "Recorded Time:[%s]  Byte written: [%d] Size: [%d] \r\n",
 				aCurTime, wByteWritten, fileSize(pFileName));
-
+#else
+#error "Invalid LOG FORMAT"
+#endif
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
 }
 
-
+/* Deleting Log File */
 void StartMicroSD_FileDel(void *argument)
 {
 	const char *msg = "ফাইলটি মুছে ফেলা হয়েছে।\r\n";
 
-	for(;;)
+	#if LOG_FORMAT == LOG_FORMAT_ASCII
+	pFileName = "TimeLog.txt";
+#elif LOG_FORMAT == LOG_FORMAT_BIN
+	pFileName = "TimeLog.bin";
+#endif
+
+	for (;;)
 	{
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* WAIT for the notification ✍. Holds*/
 
 		writetoSerial(&huart1, "Deleting log file ..✍ \r\n");
-		if(SDMMCDelete(pFileName) == FR_OK)
+		if (SDMMCDelete(pFileName) == FR_OK)
 		{
-			//writetoSerial(&huart1, "Log file deleted  \r\n");
-			writetoSerial(&huart1, msg);
+			writeFormatData(&huart1, "Log File %s deleted \r\n", pFileName);
 		}
-
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
 }
