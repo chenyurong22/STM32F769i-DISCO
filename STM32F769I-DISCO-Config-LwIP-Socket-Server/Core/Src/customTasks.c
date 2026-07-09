@@ -34,7 +34,7 @@ void StartmountSDMMCTask(void *argument)
 
 			if (loopCount == 5)
 			{
-				writetoSerial(&huart1, "SD card mount Successful \r\n");
+				writetoSerial(&huart1, "[STATUS] : SD card mount Successful 🚀 \r\n");
 				vTaskDelete(NULL);
 			}
 		}
@@ -408,7 +408,7 @@ void StartDisplay_DeviceTime(void *argument)
 	for (;;)
 	{
 		/* Verify RTC time has been Set */
-		//verifyRTCTime();
+		dsplayRTCTime();
 
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
@@ -430,7 +430,7 @@ void StartReset_Device(void *argument)
 	for (;;)
 	{
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-		writetoSerial(&huart1, "Resetting STM32 device ..\r\n");
+		writetoSerial(&huart1, "[STATUS] : Resetting STM32 device ..\r\n");
 
 		NVIC_SystemReset();
 		vTaskDelay(pdMS_TO_TICKS(500));
@@ -454,7 +454,7 @@ void StartMicroSD_mount(void *argument)
 
 		if (SDMMC2_mount() == FR_OK)
 		{
-			writetoSerial(&huart1, "[STATUS] : SD card mount Successful \r\n");
+			writetoSerial(&huart1, "[STATUS] : SD card mount Successful 🚀 \r\n");
 		}
 		else
 		{
@@ -581,7 +581,7 @@ void StartMicroSD_write(void *argument)
 		logEntry.DiskOp = WRITE_LOG;
 
 		SDMMC2_WriteFileBin(pFileNameBin, &logEntry, &wByteWritten);
-		writeFormatData(&huart1, "[STATUS] : Data written to [%s] \r\n", pFileNameBin);
+		writeFormatData(&huart1, "[STATUS] : Data written to %s file ✅ \r\n", pFileNameBin);
 
 #elif LOG_FORMAT == LOG_FORMAT_ASCII
 
@@ -616,7 +616,7 @@ void StartMicroSD_FileDel(void *argument)
 		writetoSerial(&huart1, "[STATUS] : Deleting log file ..✍ \r\n");
 		if (SDMMCDelete(pFileName) == FR_OK)
 		{
-			writeFormatData(&huart1, "[STATUS] : Log File %s deleted \r\n", pFileName);
+			writeFormatData(&huart1, "[STATUS] : Log File %s deleted  🛑 \r\n", pFileName);
 		}
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}

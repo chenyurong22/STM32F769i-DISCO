@@ -258,7 +258,7 @@ void setRtcTime_IST(const uint32_t uinxTime_IST)
 	HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
 }
 
-void verifyRTCTime()
+void dsplayRTCTime()
 {
 	char currTime[50];
 
@@ -271,7 +271,7 @@ void verifyRTCTime()
 	sprintf(currTime, "%02d:%02d:%02d", gTime.Hours, gTime.Minutes,
 			gTime.Seconds);
 
-	writeFormatData(&huart1, "Current Time (IST): [%s] \r\n", currTime);
+	writeFormatData(&huart1, "[TIME] : Current Time (IST): [%s] \r\n", currTime);
 }
 
 void getCurrentTime(const char *pCurtime, const char *pCurDate)

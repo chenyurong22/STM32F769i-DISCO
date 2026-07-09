@@ -105,7 +105,7 @@ FRESULT SDMMC2_Unmount(FIL *pFIL)
 	}
 	else
 	{
-		writetoSerial(&huart1, "[STATUS] : SD Card Un-mounting succeed \r\n");
+		writetoSerial(&huart1, "[STATUS] : SD Card Un-mounted successfully ⏏ \r\n");
 	}
 
 	return res;
@@ -141,7 +141,7 @@ FRESULT SDMMCDelete(const char *pFilename)
 
 	if (result == FR_NO_FILE)
 	{
-		writetoSerial(&huart1, "[STATUS] : File Does not exists \r\n");
+		writetoSerial(&huart1, "[STATUS] : File Does not exists 📋 ❌ \r\n");
 		return result;
 	}
 
@@ -292,7 +292,7 @@ FRESULT SDMMC2_ReadFileBin(const char *fname, entry_t *dataEntry,
 
 	if(status == FR_NO_FILE)
 	{
-		writetoSerial(&huart1, "[STATUS] : File Does not exists \r\n");
+		writetoSerial(&huart1, "[STATUS] : File Does not exists 📋 ❌ \r\n");
 		*wByeCount = 0;
 		return status;
 	}
@@ -319,7 +319,7 @@ FRESULT SDMMC2_ReadFileBin(const char *fname, entry_t *dataEntry,
 		{
 			f_sync(&fp);
 			f_close(&fp);
-			writetoSerial(&huart1, "[STATUS] : Binary Log file read Complete\r\n");
+			writetoSerial(&huart1, "[STATUS] : Binary Log file read Complete ✍\r\n");
 		}
 	}
 
@@ -341,7 +341,7 @@ FRESULT SDMMC2_GetLastIndexBin(const char *fname, size_t *curIndex)
 	status = f_open(&fp, fname, FA_READ);
 	if(status == FR_NO_FILE)
 	{
-		writeFormatData(&huart1, "[STATUS] : File %s does not exists \r\n", fname);
+		writetoSerial(&huart1, "[STATUS] : File does not exists 📋 ❌ \r\n");
 		*curIndex = 0;
 		return status;
 	}

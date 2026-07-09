@@ -112,7 +112,7 @@ void ToggleRedLED();
 /* RTC related functions */
 uint32_t getIST(const uint8_t *ntpEpochArray);
 void setRtcTime_IST(const uint32_t uinxTime_IST);
-void verifyRTCTime();
+void dsplayRTCTime();
 void EpochToRtcTime(uint32_t uinxTime_IST, RTC_TimeTypeDef *sTime);
 void DisplayIST(RTC_TimeTypeDef *sTime);
 void getCurrentTime(const char *pCurtime, const char *pCurDate);
