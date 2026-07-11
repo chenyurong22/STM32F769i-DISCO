@@ -69,13 +69,15 @@ void StartLwIPLinkHandle(void *argument)
 					writeFormatData(&huart1, "IP address: %s\r\n",
 							ip4addr_ntoa(netif_ip4_addr(&gnetif)));
 
+					ToggleGreenLED();
 					loopCount++;
-					if (loopCount > 10)
+					if (loopCount > 5)
 					{
 						/* Block StartLwIPSntpHandle task till LwIP is up */
 						xTaskNotifyGive(SNTP_LinkHandle);
+						//writetoSerial(&huart1, "LwIP is UP...\r\n");
 
-						vTaskDelete(NULL);
+						vTaskSuspend(NULL);
 					}
 				}
 				else
@@ -103,12 +105,6 @@ void StartSNTP_LinkHandle(void *argument)
 
 	/* Resume after Receiving  notification from StartLwIPLinkHandle */
 	ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
-	/* Wait for network to become UP */
-	while (!netif_is_up(&gnetif))
-	{
-		vTaskDelay(pdMS_TO_TICKS(500));
-	}
 	SNTP_Init();
 
 	for (;;)
@@ -431,6 +427,7 @@ void StartReset_Device(void *argument)
 	{
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 		writetoSerial(&huart1, "[STATUS] : Resetting STM32 device ..\r\n");
+		TurnGreenLED_ON();
 
 		NVIC_SystemReset();
 		vTaskDelay(pdMS_TO_TICKS(500));

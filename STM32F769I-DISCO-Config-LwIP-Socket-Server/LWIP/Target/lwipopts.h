@@ -61,6 +61,8 @@
 #define LWIP_ETHERNET 1
 /*----- Default Value for IP_FORWARD: 0 ---*/
 #define IP_FORWARD 1
+/*----- Default Value for LWIP_DHCP_GET_NTP_SRV: 0 ---*/
+#define LWIP_DHCP_GET_NTP_SRV 1
 /*----- Value in opt.h for LWIP_DNS_SECURE: (LWIP_DNS_SECURE_RAND_XID | LWIP_DNS_SECURE_NO_MULTIPLE_OUTSTANDING | LWIP_DNS_SECURE_RAND_SRC_PORT) -*/
 #define LWIP_DNS_SECURE 7
 /*----- Value in opt.h for TCP_SND_QUEUELEN: (4*TCP_SND_BUF + (TCP_MSS - 1))/TCP_MSS -----*/
@@ -73,6 +75,10 @@
 #define TCP_WND_UPDATE_THRESHOLD 536
 /*----- Value in opt.h for LWIP_NETIF_LINK_CALLBACK: 0 -----*/
 #define LWIP_NETIF_LINK_CALLBACK 1
+/*----- Default Value for LWIP_LOOPIF_MULTICAST: 0 ---*/
+#define LWIP_LOOPIF_MULTICAST 1
+/*----- Default Value for LWIP_NETIF_LOOPBACK: 0 ---*/
+#define LWIP_NETIF_LOOPBACK 1
 /*----- Value in opt.h for TCPIP_THREAD_STACKSIZE: 0 -----*/
 #define TCPIP_THREAD_STACKSIZE 1024
 /*----- Value in opt.h for TCPIP_THREAD_PRIO: 1 -----*/
@@ -99,6 +105,8 @@
 #define LWIP_SNMP 1
 /*----- Default Value for LWIP_SNTP: 0 ---*/
 #define LWIP_SNTP 1
+/*----- Default Value for LWIP_SMTP: 0 ---*/
+#define LWIP_SMTP 1
 /*----- Value in opt.h for MIB2_STATS: 0 or SNMP_LWIP_MIB2 -----*/
 #define MIB2_STATS 1
 /*----- Value in opt.h for CHECKSUM_GEN_IP: 1 -----*/

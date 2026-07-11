@@ -169,7 +169,6 @@ int main(void)
   MX_USART1_UART_Init();
   MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
-
   HAL_UART_Receive_IT(&huart1, &rxData, 1);
 
   /* USER CODE END 2 */
@@ -205,9 +204,9 @@ int main(void)
 
 #if 1
 	/* creation of StartLwIPLinkHandle task */
-	status = xTaskCreate(StartLwIPLinkHandle, "LwIPLinkHandle", 1024, NULL, 3,
+	status = xTaskCreate(StartLwIPLinkHandle, "LwIPLinkHandle", 1024, NULL, 6,
 			&LwIPLinkHandle);
-	ASSERT_TASK(status, mountSDMMCTaskHandle);
+	ASSERT_TASK(status, LwIPLinkHandle);
 #endif
 
 #if 0
@@ -217,10 +216,14 @@ int main(void)
 	ASSERT_TASK(status, LwIPClientHandle);
 #endif
 
-	/* creation of StartLwIPSntpHandle */
-	status = xTaskCreate(StartSNTP_LinkHandle, "SNTP_LinkHandle", 512, NULL, 4,
+#if 1
+	/* creation of StartSNTP_LinkHandle */
+	status = xTaskCreate(StartSNTP_LinkHandle, "SNTP_LinkHandle", 1024, NULL, 4,
 			&SNTP_LinkHandle);
 	ASSERT_TASK(status, SNTP_LinkHandle);
+#endif
+
+#if 1
 
 	/* creation of StartUART_NtpTimeReceive */
 	status = xTaskCreate(StartUART_NtpTimeReceive, "UART_NtpTimeReceiveHandle", 512, NULL, 4,
@@ -228,22 +231,25 @@ int main(void)
 	ASSERT_TASK(status, UART_NtpTimeReceiveHandle);
 
 	/* creation of StartUART_NtpTimeSet */
-	status = xTaskCreate(StartUART_NtpTimeSet, "UART_NtpTimeSetHandle", 512, NULL, 4,
+	status = xTaskCreate(StartUART_NtpTimeSet, "UART_NtpTimeSetHandle", 256, NULL, 4,
 			&UART_NtpTimeSetHandle);
 	ASSERT_TASK(status, UART_NtpTimeSetHandle);
+#endif
 
+#if 1
 	/* creation of StartDisplay_DeviceTime */
-	status = xTaskCreate(StartDisplay_DeviceTime, "Display_DeviceTimeHandle", 512, NULL, 4,
+	status = xTaskCreate(StartDisplay_DeviceTime, "Display_DeviceTimeHandle", 256, NULL, 4,
 			&Display_DeviceTimeHandle);
 	ASSERT_TASK(status, MicroSD_writeHandle);
+#endif
 
 	/* creation of StartReset_Device */
 	status = xTaskCreate(StartReset_Device, "Reset_DeviceHandle", 512, NULL, 4,
 			&Reset_DeviceHandle);
 	ASSERT_TASK(status, Reset_DeviceHandle);
 
+#if 0
 	/* MicroSD card tasks */
-
 	/* creation of StartMicroSD_mount */
 	status = xTaskCreate(StartMicroSD_mount, "MicroSD_mountHandle", 512, NULL, 4,
 			&MicroSD_mountHandle);
@@ -270,9 +276,9 @@ int main(void)
 			&MicroSD_FileDelHandle);
 	ASSERT_TASK(status, MicroSD_FileDelHandle);
 
+#endif
 
-
-	/* USER CODE END RTOS_THREADS */
+  /* USER CODE END RTOS_THREADS */
 
   /* Start scheduler */
   osKernelStart();
@@ -852,15 +858,17 @@ static void MX_GPIO_Init(void)
  * @retval None
  */
 /* USER CODE END Header_StartDefaultTask */
+
+extern struct netif gnetif;
 void StartDefaultTask(void const * argument)
 {
   /* init code for LWIP */
   MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
 	/* Infinite loop */
+
 	for (;;)
 	{
-		//writeFormatData(&huart1, "Running [%s] \r\n", __func__);
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
   /* USER CODE END 5 */
