@@ -69,6 +69,7 @@ void writeASCIItoSerial(UART_HandleTypeDef *huart, uint8_t bFormat, const uint8_
 		int wArrSize, char *pHeader);
 
 void binaryToASCII(const uint8_t *pHex, uint16_t wHexLen, char *pAscii);
+void writeFormatData(UART_HandleTypeDef *huart, const char *format, ...);
 
 typedef enum
 {
@@ -96,5 +97,16 @@ typedef enum
 	ASCII,
 	HEX,
 } printformat_t;
+
+void GreenLED_init();
+void RedLED_init();
+
+void TurnGreenLED_ON();
+void TurnGreenLED_OFF();
+
+void ToggleGreenLED();
+void ToggleRedLED();
+
+
 
 #endif /* INC_CUSTOM_H_ */

@@ -2,7 +2,7 @@
 /**
  ******************************************************************************
  * @file           : main.c
- * @brief          : Main program body
+ * @brief          : Main program body (Interfaced with FreeRTOS)
  ******************************************************************************
  * @attention
  *
@@ -19,7 +19,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "string.h"
-#include "fatfs.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -126,14 +125,15 @@ static void MX_RNG_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-const char *pFilenamePlain = "Readme.txt";
+const char *pIntFilename = "Readme.txt";
+const char *pOutFilename = "Output.txt";
 const char *pFilenameBinary = "STM32Key.bin";
 uint8_t aOutBuff[MAX_ARR_SIZE];
 size_t wByteRead = 0;
 
 __attribute__((section(".keystore_section")))
- __attribute__((aligned(32)))
- volatile uint8_t akeyBuffer[32];
+     __attribute__((aligned(32)))
+     volatile uint8_t akeyBuffer[32];
 
 /* USER CODE END 0 */
 
@@ -193,14 +193,50 @@ int main(void)
 	/* USER CODE BEGIN 2 */
 
 	/* Mounting MicroSD card */
-	SDMMC2_mount();
 
+	if (SDMMC2_mount() != FR_OK)
+	{
+		writetoSerial(&huart1, "SDMMC card mount failed \r\n");
+		return FR_DISK_ERR;
+	}
+
+	/* File size to terminal */
+	writeFormatData(&huart1, "File size: %5d Byte \r\n",
+			fileSize(pOutFilename));
+
+	if (fileSize(pOutFilename) > 1024)
+	{
+		writeFormatData(&huart1, "Deleting file : %s  \r\n", pOutFilename);
+		if (SDMMCDelete(pOutFilename) != FR_OK)
+		{
+			writetoSerial(&huart1, "File delete failed \r\n");
+			return FR_DISK_ERR;
+		}
+	}
+
+	/************** File Write Sequence Starts ****************/
+	const char *pBuffer = "Writing to SDMMC card in STM32F769I-DISCO";
+	char aData[80];
+
+	entry_t dataEntry;
+
+	strcpy(dataEntry.data,pBuffer);
+
+	size_t byteWritte = 0;
+	SDMMC2_WriteFile(pOutFilename, &dataEntry, &byteWritte);
+	/************** File Write Sequence Ends ****************/
+
+	/************** File Read Sequence Starts ****************/
 	/* Read from the File in SDMMC2 */
-	SDMMC2_ReadFile(pFilenameBinary, HEX, aOutBuff, &wByteRead);
-	writeASCIItoSerial(&huart1, HEX, aOutBuff, wByteRead, "Received Key");
+	SDMMC2_ReadFile(pOutFilename, HEX, aOutBuff, &wByteRead);
+	writetoSerial(&huart1, (char*) aOutBuff);
 
-	/* Verify .map file to make sure the section exists in keystore_section */
-	(void) memcpy((void*) akeyBuffer, pFilenamePlain, strlen(pFilenamePlain));
+	/************** File Read Sequence ends ****************/
+
+	/* File size to terminal */
+//	writeFormatData(&huart1, "File size: %5d Byte \r\n",fileSize(pOutFilename));
+	/* Un-mount SDMMC card */
+	SDMMC2_Unmount(&SDFile);
 
 	/* USER CODE END 2 */
 

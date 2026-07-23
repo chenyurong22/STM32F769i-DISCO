@@ -58,8 +58,13 @@ typedef enum
 void setLCDBox(uint32_t XPos, uint32_t YPos, uint32_t XLength, uint32_t YHeight,
 		uint32_t borColor, uint32_t fillColr, uint32_t testColr,
 		sFONT *pTextFont, LCDBox_t *pLcdBix);
-
 void drawCircleMultiColors(uint8_t bColor);
+void MPU_SDRAM_Config();
+
+/* Touch screen related function */
+
+
+
 
 
 #endif /* INC_CUSTOMLCD_H_ */

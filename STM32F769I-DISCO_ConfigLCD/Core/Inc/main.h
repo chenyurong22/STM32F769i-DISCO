@@ -157,8 +157,8 @@ void Error_Handler(void);
 #define CEC_CLK_GPIO_Port GPIOA
 #define OSC_25M_Pin GPIO_PIN_0
 #define OSC_25M_GPIO_Port GPIOH
-#define LCD_INT_Pin GPIO_PIN_13
-#define LCD_INT_GPIO_Port GPIOI
+#define TS_INT_Pin GPIO_PIN_13
+#define TS_INT_GPIO_Port GPIOI
 #define uSD_Detect_Pin GPIO_PIN_15
 #define uSD_Detect_GPIO_Port GPIOI
 #define ARD_D5_PWM_Pin GPIO_PIN_8

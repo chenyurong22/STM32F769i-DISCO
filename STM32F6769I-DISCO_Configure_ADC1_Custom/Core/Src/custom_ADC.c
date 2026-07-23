@@ -7,6 +7,19 @@
 
 #include "custom_ADC.h"
 
+#define SW_TRIG		1	/* Software Tigger */
+#define EXT_TRIG	0	/* TIM1 Tigger */
+
+
+/**
+ * @brief Initializes ADC1 peripheral
+ *
+ * Configures GPIO, ADC clock, resolution,
+ * sampling time, and DMA request.
+ *
+ * @note ADC clock must be < 36 MHz.
+ */
+
 void ADC1_Init()
 {
 	/************************ Configuring GPIO *********************/
@@ -35,10 +48,23 @@ void ADC1_Init()
 	 * 108MHz/2 = 54MHz */
 	ADC->CCR &= ~ADC_CCR_ADCPRE_Msk;
 
+#if SW_TRIG
 	/* Selecting continuous mode */
 	ADC1->CR2 |= ADC_CR2_CONT;
+#endif	/*SW_TRIG*/
 
-	/* Enabnling DMA for ADC1 ✍ */
+#if EXT_TRIG
+	/* Selecting TIMER-1 trigger for ADC1
+	 * b1001: tim1_trgo  */
+	ADC1->CR2 |= ADC_CR2_EXTSEL_3 | ADC_CR2_EXTSEL_0;
+
+	/* Trigger  Rising edge seclection */
+	ADC1->CR2 |= ADC_CR2_EXTEN_0;
+#endif
+
+
+	/* Setting for External trigger TIM1 TIM1_TRG0 */
+	/* Enabling DMA for ADC1 ✍ */
 	ADC1->CR2 |= ADC_CR2_DMA;
 
 	/* Selecting continuous DMA request mode ✍ */
@@ -62,15 +88,73 @@ void ADC1_Init()
 
 	/* CH6 is first channel in the Sequence */
 	ADC1->SQR3 |= ADC_SQR3_SQ1_1 | ADC_SQR3_SQ1_2;
-
 }
 
 void ADC1_StartConversion()
 {
 	/* Turing ON ADC1 */
 	ADC1->CR2 |= ADC_CR2_ADON;
+
+#if SW_TRIG
 	ADC1->CR2 |= ADC_CR2_SWSTART;
+#endif /*SW_TRIG*/
 }
+
+
+
+/**
+ * @brief Generates specified trigger for ADC1
+ * TIM1_Configure(uint16_t timeTrigger_ms)
+ *
+ * Compute Prescale and Automatics Relaod value for given exeternal trigger
+ * of ADC1,
+ * .
+ * @note PCLK2 requency is ontained using HAL_RCC_GetPCLK2Freq()
+ */
+
+void TIM1_Configure(uint16_t timeTrigger_ms)
+{
+	/* TIM1 is connected to APB2 bus having clock source
+	 * APB2 timer clock = 216 MHz */
+
+	uint32_t PLCK2_Freq;
+	uint32_t TIM1Freq;
+	uint16_t AutoRR = 0;
+	uint16_t PrescaleValue;
+
+	/* Deriving TIM1 input frequncy */
+	PLCK2_Freq = HAL_RCC_GetPCLK2Freq();
+	if ((RCC->CFGR & RCC_CFGR_PPRE2) != RCC_CFGR_PPRE2_DIV1)
+		TIM1Freq = 2 * PLCK2_Freq;
+	else
+		TIM1Freq = 1 * PLCK2_Freq;
+
+    /* Choose prescaler to get 10 kHz counter clock */
+    PrescaleValue = (TIM1Freq / 10000) - 1;
+
+    /* Calculate ARR */
+    AutoRR = ((10000 * timeTrigger_ms) / 1000) - 1;
+	/* CLK Enable for TIM1 */
+	RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
+
+	/* TIM1 Prescaler value*/
+	TIM1->PSC = PrescaleValue;
+
+	/* TIM1 Autorelaod value for 250 ms  trigger */
+	TIM1->ARR = AutoRR;
+
+	/* Update event for ADC1*/
+	/* Providining External trigger to ADC1 */
+	TIM1->CR2 &= ~TIM_CR2_MMS;
+	TIM1->CR2 |= TIM_CR2_MMS_1;
+
+    /* Force update event to load registers */
+    TIM1->EGR |= TIM_EGR_UG;
+
+	/* Enable TIM1 */
+	TIM1->CR1 |= TIM_CR1_CEN;
+}
+
 
 void ADC1_StopConversion()
 {
@@ -109,6 +193,14 @@ void ADC1_Interrupt_Initialization()
 	/* Enable  ADC1 Interrupt in NVIC*/
 	NVIC_EnableIRQ(ADC_IRQn);
 }
+
+
+/**
+ * @brief Initialize DMA for ADC1
+ *
+ * @param pMemoryDst Pointer to destination buffer
+ * @param wDataLen Number of samples
+ */
 
 void ADC1_DMA_Initialization(uint16_t *pMemoryDst, uint16_t wDataLen)
 {

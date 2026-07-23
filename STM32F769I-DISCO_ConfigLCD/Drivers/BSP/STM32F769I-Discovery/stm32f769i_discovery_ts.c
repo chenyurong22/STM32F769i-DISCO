@@ -442,7 +442,11 @@ __weak void BSP_TS_INT_MspInit(void)
   gpio_init_structure.Pull      = GPIO_PULLUP;
   gpio_init_structure.Speed     = GPIO_SPEED_HIGH;
   HAL_GPIO_Init(TS_INT_GPIO_PORT, &gpio_init_structure);
+
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 }
+
 
 /**
   * @}

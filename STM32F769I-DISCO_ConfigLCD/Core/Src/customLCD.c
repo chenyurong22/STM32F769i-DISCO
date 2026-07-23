@@ -6,6 +6,8 @@
  */
 
 #include "customLCD.h"
+#include "custom.h"
+#include "stm32f769i_discovery_ts.h"
 
 
 void setLCDBox(uint32_t XPos, uint32_t YPos, uint32_t XLength, uint32_t YHeight,
@@ -110,6 +112,49 @@ uint32_t getColorRGB(uint8_t bColor)
 void drawCircleMultiColors(uint8_t bColor)
 {
 	BSP_LCD_SetTextColor(getColorRGB(bColor));
-	BSP_LCD_FillCircle(600, 300, 100);
+	BSP_LCD_FillCircle(400, 360, 50);
 }
 
+void EXTI15_10_IRQHandler(void)
+{
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
+}
+extern volatile uint8_t TOUCH_ON;
+extern volatile uint16_t pixelXY[2];
+extern TS_StateTypeDef TS_State;
+extern uint8_t touchCount;
+
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if (GPIO_Pin == GPIO_PIN_13)
+	{
+		TOUCH_ON = 1;
+		touchCount++;
+	}
+}
+
+
+
+void MPU_SDRAM_Config()
+	{
+		MPU_Region_InitTypeDef MPU_InitStruct = { 0 };
+
+		HAL_MPU_Disable();
+
+		/* SDRAM: 0xC0000000, 8MB */
+		MPU_InitStruct.Enable = MPU_REGION_ENABLE;
+		MPU_InitStruct.BaseAddress = 0xC0000000;
+		MPU_InitStruct.Size = MPU_REGION_SIZE_8MB;
+		MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
+		MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
+		MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
+		MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+		MPU_InitStruct.Number = MPU_REGION_NUMBER0;
+		MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
+		MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
+
+		HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+		HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
+	}
