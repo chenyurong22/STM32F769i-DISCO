@@ -43,7 +43,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 				if(NtpRx.NTPBuff[3] == 0xE3)
 				{
-
 					vTaskNotifyGiveFromISR(SyncNTPTaskHandle, &xHighPriorityTaskWoken);
 				}
 
