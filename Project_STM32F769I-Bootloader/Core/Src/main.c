@@ -4,6 +4,7 @@
   * @file           : main.c
   * @brief          : Main program body
   * 				: CBC based Secure Boot
+  * 				: Secure Boot
   ******************************************************************************
   * @attention
   *
